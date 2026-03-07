@@ -1,0 +1,32 @@
+🔨 Compiling contracts...
+   Compiling contracts v0.2.0 (/root/.gemini/antigravity/scratch/shadowvault/packages/snfoundry/contracts/Scarb.toml)
+    Finished `dev` profile target(s) in 0 seconds
+✅ Compilation completed successfully
+[32m✓ RPC connected (Block #7313021)[0m
+[33mDeploying Contract [0m ShadowVault
+[33mClass hash[0m 0xfdd61d666820cacd36ceed7122bebe0d29ae496c4478f4f4f19bf03459dd45 [33mnot found, proceeding with declaration...[0m
+[33mEstimated declare fee: 13730521321326245760[0m
+[33mEstimated tip: 100000000[0m
+[33mEstimated retry interval: 11000[0m
+[33mWaiting for declaration transaction to be accepted...[0m
+[32mDeclaration successful[0m
+[33mDeclaration fee:[0m { amount: '0x55c1df2a6f67a700', unit: 'FRI' }
+[32mContract Deployed at [0m 0x25ba5a7e97e079e1fb7e580e63701fe00ae9ef4e2686e2f4cac0600b1993e34
+[32mDeploy Calls Executed at [0m 0x4304c12b1f09c11320fa150e5fcd75aecc1ab40ccfa1a4503869ac05c9d3f16
+[32m
+📦 Deployment Summary
+[0m
+[34m🌐 Network:[0m sepolia
+
+[36m🔗 Transaction:[0m
+]8;;https://sepolia.starkscan.co/tx/0x4304c12b1f09c11320fa150e5fcd75aecc1ab40ccfa1a4503869ac05c9d3f16https://sepolia.starkscan.co/tx/0x4304c12b1f09c11320fa150e5fcd75aecc1ab40ccfa1a4503869ac05c9d3f16]8;;
+
+[33m📄 ShadowVault Contract:[0m
+]8;;https://sepolia.starkscan.co/contract/0x25ba5a7e97e079e1fb7e580e63701fe00ae9ef4e2686e2f4cac0600b1993e34https://sepolia.starkscan.co/contract/0x25ba5a7e97e079e1fb7e580e63701fe00ae9ef4e2686e2f4cac0600b1993e34]8;;
+
+[34m💰 Deployer Balance Summary:[0m
+Deployer-Address: 0x006070c6f8852856f270b09fe04837232fc89322330d14c4ff809c00b34f28c2
+💰Post-Deployer-Balance: 92.337331190472497155 strk
+[32mAll Setup Done![0m
+📦 Found package name in Scarb.toml: contracts
+📝 Updated TypeScript contract definition file on /root/.gemini/antigravity/scratch/shadowvault/packages/nextjs/contracts/deployedContracts.ts

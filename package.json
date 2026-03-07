@@ -46,6 +46,7 @@
     "prettier": "^3.2.5"
   },
   "dependencies": {
+    "ethers": "^6.16.0",
     "postcss": "^8.4.38"
   }
 }
