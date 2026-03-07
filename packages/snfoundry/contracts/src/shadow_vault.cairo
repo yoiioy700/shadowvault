@@ -191,7 +191,9 @@ pub mod ShadowVault {
             if !self.is_activated.read(caller) {
                 self.is_activated.write(caller, true);
                 self.last_heartbeat.write(caller, get_block_timestamp());
-                self.heartbeat_interval.write(caller, DEFAULT_HEARTBEAT_INTERVAL);
+                if self.heartbeat_interval.read(caller) == 0 {
+                    self.heartbeat_interval.write(caller, DEFAULT_HEARTBEAT_INTERVAL);
+                }
             }
 
             self.emit(DepositMade { user: caller, amount });
@@ -202,6 +204,7 @@ pub mod ShadowVault {
             let current_balance = self.balances.read(caller);
             assert(amount > 0, 'Amount must be > 0');
             assert(current_balance >= amount, 'Insufficient balance');
+            assert(!self.is_dead(caller), 'Vault is in dead state');
 
             // Update balance
             self.balances.write(caller, current_balance - amount);
@@ -273,7 +276,21 @@ pub mod ShadowVault {
 
         fn set_beneficiary(ref self: ContractState, beneficiary: ContractAddress, share_bps: u16) {
             let caller = get_caller_address();
+            assert(!self.has_been_distributed.read(caller), 'Already distributed');
             assert(share_bps > 0 && share_bps <= 10000, 'Invalid share bps');
+
+            // Calculate current total shares (excluding the one being updated)
+            let count = self.beneficiary_count.read(caller);
+            let mut total_shares: u16 = 0;
+            let mut j: u32 = 0;
+            while j < count {
+                let addr = self.beneficiary_address.read((caller, j));
+                if addr != beneficiary {
+                    total_shares += self.beneficiary_share.read((caller, j));
+                }
+                j += 1;
+            }
+            assert(total_shares + share_bps <= 10000, 'Total shares exceed 100%');
 
             // Check if beneficiary already exists, update if so
             let count = self.beneficiary_count.read(caller);
@@ -373,7 +390,17 @@ pub mod ShadowVault {
             while i < count {
                 let ben_addr = self.beneficiary_address.read((user, i));
                 let share_bps: u256 = self.beneficiary_share.read((user, i)).into();
-                let amount = (total_balance * share_bps) / BPS_DENOMINATOR;
+                
+                let mut amount = (total_balance * share_bps) / BPS_DENOMINATOR;
+                
+                // For the last beneficiary, add any remaining dust to ensure vault is empty
+                if i == count - 1 {
+                    let remaining = total_balance - total_distributed;
+                    if remaining > amount {
+                        amount = remaining;
+                    }
+                }
+                
                 if amount > 0 {
                     token.transfer(ben_addr, amount);
                     total_distributed += amount;

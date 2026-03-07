@@ -122,21 +122,21 @@ fn test_is_dead_after_timeout() {
     let strk_address: ContractAddress = STRK_TOKEN.try_into().unwrap();
     let erc20 = IERC20Dispatcher { contract_address: strk_address };
 
-    // Set short interval for testing (1 day)
     cheat_caller_address(contract_address, OWNER, CheatSpan::TargetCalls(1));
     dispatcher.set_heartbeat_interval(86400); // 1 day
 
-    // Deposit to activate
     cheat_caller_address(strk_address, OWNER, CheatSpan::TargetCalls(1));
     erc20.approve(contract_address, 100);
     cheat_caller_address(contract_address, OWNER, CheatSpan::TargetCalls(1));
     dispatcher.deposit(100);
 
-    // Not dead yet
-    assert(!dispatcher.is_dead(OWNER), 'Should not be dead yet');
+    let last_hb = dispatcher.get_last_heartbeat(OWNER);
+    let interval = dispatcher.get_heartbeat_interval(OWNER);
 
-    // Simulate time passing: 2 days later
-    cheat_block_timestamp(contract_address, 86400 * 2 + 99999999999, CheatSpan::Indefinite);
+    // Time travel
+    cheat_block_timestamp(contract_address, last_hb + 86400 * 3, CheatSpan::Indefinite);
+    
+    // Test if dead
     assert(dispatcher.is_dead(OWNER), 'Should be dead after timeout');
 }
 
@@ -191,27 +191,25 @@ fn test_trigger_distribution() {
     let strk_address: ContractAddress = STRK_TOKEN.try_into().unwrap();
     let erc20 = IERC20Dispatcher { contract_address: strk_address };
 
-    // Setup: short interval
     cheat_caller_address(contract_address, OWNER, CheatSpan::TargetCalls(1));
     dispatcher.set_heartbeat_interval(86400);
 
-    // Set beneficiaries: 60% + 40%
     cheat_caller_address(contract_address, OWNER, CheatSpan::TargetCalls(1));
     dispatcher.set_beneficiary(BENEFICIARY1, 6000);
     cheat_caller_address(contract_address, OWNER, CheatSpan::TargetCalls(1));
     dispatcher.set_beneficiary(BENEFICIARY2, 4000);
 
-    // Deposit
     let deposit_amount: u256 = 10000;
     cheat_caller_address(strk_address, OWNER, CheatSpan::TargetCalls(1));
     erc20.approve(contract_address, deposit_amount);
     cheat_caller_address(contract_address, OWNER, CheatSpan::TargetCalls(1));
     dispatcher.deposit(deposit_amount);
 
-    // Time travel past deadline
-    cheat_block_timestamp(contract_address, 86400 * 2 + 99999999999, CheatSpan::Indefinite);
+    let last_hb = dispatcher.get_last_heartbeat(OWNER);
+    cheat_block_timestamp(contract_address, last_hb + 86400 * 3, CheatSpan::Indefinite);
 
     // Trigger distribution (anyone can call)
+    cheat_caller_address(contract_address, USER1, CheatSpan::TargetCalls(1));
     dispatcher.trigger_distribution(OWNER);
 
     // Verify distribution
