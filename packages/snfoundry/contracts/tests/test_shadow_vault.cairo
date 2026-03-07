@@ -2,8 +2,8 @@ use contracts::shadow_vault::{IShadowVaultDispatcher, IShadowVaultDispatcherTrai
 use openzeppelin_token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
 use openzeppelin_utils::serde::SerializedAppend;
 use snforge_std::{
-    CheatSpan, ContractClassTrait, DeclareResultTrait, cheat_caller_address, declare,
-    cheat_block_timestamp,
+    CheatSpan, ContractClassTrait, DeclareResultTrait, cheat_block_timestamp, cheat_caller_address,
+    declare,
 };
 use starknet::ContractAddress;
 
@@ -20,10 +20,14 @@ const USER1: ContractAddress = 0x0123456789abcdef0123456789abcdef0123456789abcde
     .unwrap();
 
 const BENEFICIARY1: ContractAddress =
-    0x0111111111111111111111111111111111111111111111111111111111111111.try_into().unwrap();
+    0x0111111111111111111111111111111111111111111111111111111111111111
+    .try_into()
+    .unwrap();
 
 const BENEFICIARY2: ContractAddress =
-    0x0222222222222222222222222222222222222222222222222222222222222222.try_into().unwrap();
+    0x0222222222222222222222222222222222222222222222222222222222222222
+    .try_into()
+    .unwrap();
 
 const AGENT: ContractAddress = 0x0333333333333333333333333333333333333333333333333333333333333333
     .try_into()

@@ -27,7 +27,9 @@ pub trait IShadowVault<TContractState> {
 
     // === AI Agent ===
     fn set_agent(ref self: TContractState, agent: starknet::ContractAddress);
-    fn get_agent(self: @TContractState, user: starknet::ContractAddress) -> starknet::ContractAddress;
+    fn get_agent(
+        self: @TContractState, user: starknet::ContractAddress,
+    ) -> starknet::ContractAddress;
     fn agent_execute(
         ref self: TContractState,
         user: starknet::ContractAddress,
@@ -44,7 +46,7 @@ pub mod ShadowVault {
         Map, StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
         StoragePointerWriteAccess,
     };
-    use starknet::{ContractAddress, get_caller_address, get_contract_address, get_block_timestamp};
+    use starknet::{ContractAddress, get_block_timestamp, get_caller_address, get_contract_address};
     use super::IShadowVault;
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
@@ -160,7 +162,9 @@ pub mod ShadowVault {
     // ==================== CONSTRUCTOR ====================
 
     #[constructor]
-    fn constructor(ref self: ContractState, owner: ContractAddress, token_address: ContractAddress) {
+    fn constructor(
+        ref self: ContractState, owner: ContractAddress, token_address: ContractAddress,
+    ) {
         self.ownable.initializer(owner);
         self.token_address.write(token_address);
     }
@@ -267,9 +271,7 @@ pub mod ShadowVault {
 
         // === Beneficiary Management ===
 
-        fn set_beneficiary(
-            ref self: ContractState, beneficiary: ContractAddress, share_bps: u16,
-        ) {
+        fn set_beneficiary(ref self: ContractState, beneficiary: ContractAddress, share_bps: u16) {
             let caller = get_caller_address();
             assert(share_bps > 0 && share_bps <= 10000, 'Invalid share bps');
 
@@ -285,7 +287,7 @@ pub mod ShadowVault {
                     break;
                 }
                 i += 1;
-            };
+            }
 
             // Add new beneficiary if not found
             if !found {
@@ -322,7 +324,7 @@ pub mod ShadowVault {
                     break;
                 }
                 i += 1;
-            };
+            }
 
             assert(found, 'Beneficiary not found');
             self.emit(BeneficiaryRemoved { user: caller, beneficiary });
@@ -377,7 +379,7 @@ pub mod ShadowVault {
                     total_distributed += amount;
                 }
                 i += 1;
-            };
+            }
 
             // Update state
             self.balances.write(user, total_balance - total_distributed);
