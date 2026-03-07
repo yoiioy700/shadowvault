@@ -135,7 +135,7 @@ fn test_is_dead_after_timeout() {
 
     // Time travel
     cheat_block_timestamp(contract_address, last_hb + 86400 * 3, CheatSpan::Indefinite);
-    
+
     // Test if dead
     assert(dispatcher.is_dead(OWNER), 'Should be dead after timeout');
 }
@@ -208,15 +208,16 @@ fn test_trigger_distribution() {
     let last_hb = dispatcher.get_last_heartbeat(OWNER);
     cheat_block_timestamp(contract_address, last_hb + 86400 * 3, CheatSpan::Indefinite);
 
-    // Trigger distribution (anyone can call)
+    // Snapshot balance BEFORE distribution
+    let ben1_before = erc20.balance_of(BENEFICIARY1);
+    let ben2_before = erc20.balance_of(BENEFICIARY2);
+
     cheat_caller_address(contract_address, USER1, CheatSpan::TargetCalls(1));
     dispatcher.trigger_distribution(OWNER);
 
-    // Verify distribution
-    let ben1_balance = erc20.balance_of(BENEFICIARY1);
-    let ben2_balance = erc20.balance_of(BENEFICIARY2);
-    assert(ben1_balance == 6000, 'Ben1 should get 6000');
-    assert(ben2_balance == 4000, 'Ben2 should get 4000');
+    // Assert DELTA, bukan absolute value
+    assert(erc20.balance_of(BENEFICIARY1) - ben1_before == 6000, 'Ben1 should get 6000');
+    assert(erc20.balance_of(BENEFICIARY2) - ben2_before == 4000, 'Ben2 should get 4000');
 }
 
 // ==================== AI AGENT TESTS ====================

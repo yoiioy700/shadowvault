@@ -201,19 +201,16 @@ pub mod ShadowVault {
 
         fn withdraw(ref self: ContractState, amount: u256) {
             let caller = get_caller_address();
+            assert(!self.is_dead(caller), 'Vault is in dead state'); // tambah ini
             let current_balance = self.balances.read(caller);
             assert(amount > 0, 'Amount must be > 0');
             assert(current_balance >= amount, 'Insufficient balance');
-            assert(!self.is_dead(caller), 'Vault is in dead state');
 
-            // Update balance
             self.balances.write(caller, current_balance - amount);
 
-            // Transfer tokens back to user
             let token = IERC20Dispatcher { contract_address: self.token_address.read() };
             token.transfer(caller, amount);
 
-            // Record heartbeat on activity
             self.last_heartbeat.write(caller, get_block_timestamp());
 
             self.emit(WithdrawalMade { user: caller, amount });
@@ -276,38 +273,33 @@ pub mod ShadowVault {
 
         fn set_beneficiary(ref self: ContractState, beneficiary: ContractAddress, share_bps: u16) {
             let caller = get_caller_address();
-            assert(!self.has_been_distributed.read(caller), 'Already distributed');
             assert(share_bps > 0 && share_bps <= 10000, 'Invalid share bps');
+            assert(!self.has_been_distributed.read(caller), 'Already distributed');
 
-            // Calculate current total shares (excluding the one being updated)
-            let count = self.beneficiary_count.read(caller);
-            let mut total_shares: u16 = 0;
-            let mut j: u32 = 0;
-            while j < count {
-                let addr = self.beneficiary_address.read((caller, j));
-                if addr != beneficiary {
-                    total_shares += self.beneficiary_share.read((caller, j));
-                }
-                j += 1;
-            }
-            assert(total_shares + share_bps <= 10000, 'Total shares exceed 100%');
-
-            // Check if beneficiary already exists, update if so
             let count = self.beneficiary_count.read(caller);
             let mut found = false;
+            let mut found_index: u32 = 0;
+            let mut total_existing_shares: u16 = 0;
             let mut i: u32 = 0;
+
             while i < count {
                 let addr = self.beneficiary_address.read((caller, i));
+                let share = self.beneficiary_share.read((caller, i));
                 if addr == beneficiary {
-                    self.beneficiary_share.write((caller, i), share_bps);
                     found = true;
-                    break;
+                    found_index = i;
+                } else {
+                    total_existing_shares += share; // exclude current beneficiary dari total
                 }
                 i += 1;
             }
 
-            // Add new beneficiary if not found
-            if !found {
+            // Validate total won't exceed 10000 bps
+            assert(total_existing_shares + share_bps <= 10000, 'Total shares exceed 100%');
+
+            if found {
+                self.beneficiary_share.write((caller, found_index), share_bps);
+            } else {
                 self.beneficiary_address.write((caller, count), beneficiary);
                 self.beneficiary_share.write((caller, count), share_bps);
                 self.beneficiary_count.write(caller, count + 1);
@@ -364,7 +356,6 @@ pub mod ShadowVault {
         // === Distribution ===
 
         fn trigger_distribution(ref self: ContractState, user: ContractAddress) {
-            // Anyone can trigger distribution if user is dead
             assert(self.is_activated.read(user), 'Vault not activated');
             assert(!self.has_been_distributed.read(user), 'Already distributed');
 
@@ -390,17 +381,14 @@ pub mod ShadowVault {
             while i < count {
                 let ben_addr = self.beneficiary_address.read((user, i));
                 let share_bps: u256 = self.beneficiary_share.read((user, i)).into();
-                
-                let mut amount = (total_balance * share_bps) / BPS_DENOMINATOR;
-                
-                // For the last beneficiary, add any remaining dust to ensure vault is empty
-                if i == count - 1 {
-                    let remaining = total_balance - total_distributed;
-                    if remaining > amount {
-                        amount = remaining;
-                    }
-                }
-                
+
+                // Last beneficiary gets remaining balance to avoid dust
+                let amount = if i == count - 1 {
+                    total_balance - total_distributed
+                } else {
+                    (total_balance * share_bps) / BPS_DENOMINATOR
+                };
+
                 if amount > 0 {
                     token.transfer(ben_addr, amount);
                     total_distributed += amount;
@@ -408,8 +396,7 @@ pub mod ShadowVault {
                 i += 1;
             }
 
-            // Update state
-            self.balances.write(user, total_balance - total_distributed);
+            self.balances.write(user, 0); // guaranteed zero sekarang
             self.has_been_distributed.write(user, true);
 
             self.emit(DistributionTriggered { user, total_distributed });
