@@ -37,7 +37,16 @@ export const AgentPanel = () => {
         }
     };
 
-    const agentAddr = currentAgent?.toString() ?? "0x0";
+    const agentAddr = (() => {
+        if (!currentAgent) return "0x0";
+        try {
+            const str = currentAgent.toString();
+            return str.startsWith("0x") ? str : `0x${BigInt(str).toString(16)}`;
+        } catch {
+            return "0x0";
+        }
+    })();
+
     const hasAgent =
         agentAddr !== "0x0" &&
         agentAddr !== "0" &&

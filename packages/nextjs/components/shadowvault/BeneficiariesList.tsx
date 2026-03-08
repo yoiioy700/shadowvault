@@ -29,7 +29,16 @@ const BeneficiaryRow = ({ user, index }: { user: string; index: number }) => {
 
     // data is a tuple: [address, share_bps]
     const tuple = data as unknown as [string, number | bigint];
-    const addr = tuple[0]?.toString() ?? "";
+    const addr = (() => {
+        const val = tuple[0];
+        if (!val) return "0x0";
+        try {
+            const str = val.toString();
+            return str.startsWith("0x") ? str : `0x${BigInt(str).toString(16)}`;
+        } catch {
+            return "0x0";
+        }
+    })();
     const bps = Number(tuple[1]?.toString() ?? "0");
     const pct = (bps / 100).toFixed(1);
 
@@ -115,11 +124,10 @@ export const BeneficiariesList = () => {
             {/* Toast notification */}
             {toast && (
                 <div
-                    className={`absolute top-4 left-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                        toast.type === "success"
+                    className={`absolute top-4 left-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-medium transition-all ${toast.type === "success"
                             ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
                             : "bg-red-500/10 border border-red-500/20 text-red-400"
-                    }`}
+                        }`}
                 >
                     {toast.message}
                 </div>
