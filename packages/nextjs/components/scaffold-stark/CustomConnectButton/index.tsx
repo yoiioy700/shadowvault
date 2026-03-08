@@ -14,110 +14,93 @@ import { getBlockExplorerAddressLink } from "~~/utils/scaffold-stark";
 import { useReadLocalStorage } from "usehooks-ts";
 
 export const CustomConnectButton = () => {
-  useAutoConnect();
-  const networkColor = useNetworkColor();
-  const { connector } = useConnect();
-  const { targetNetwork } = useTargetNetwork();
-  const { chain } = useNetwork();
-  const { account, status, address: accountAddress } = useAccount();
-  const wasDisconnectedManually =
-    useReadLocalStorage<boolean>("wasDisconnectedManually");
-  const [accountChainId, setAccountChainId] = useState<bigint>(0n);
+    useAutoConnect();
+    const networkColor = useNetworkColor();
+    const { connector } = useConnect();
+    const { targetNetwork } = useTargetNetwork();
+    const { chain } = useNetwork();
+    const { account, status, address: accountAddress } = useAccount();
+    const wasDisconnectedManually = useReadLocalStorage<boolean>("wasDisconnectedManually");
+    const [accountChainId, setAccountChainId] = useState<bigint>(0n);
 
-  const blockExplorerAddressLink = useMemo(() => {
-    return accountAddress
-      ? getBlockExplorerAddressLink(targetNetwork, accountAddress)
-      : "";
-  }, [accountAddress, targetNetwork]);
+    const blockExplorerAddressLink = useMemo(() => {
+        return accountAddress ? getBlockExplorerAddressLink(targetNetwork, accountAddress) : "";
+    }, [accountAddress, targetNetwork]);
 
-  // effect to get chain id and address from account
-  useEffect(() => {
-    const getChainId = async () => {
-      try {
-        if (account?.channel?.getChainId) {
-          const chainId = await account.channel.getChainId();
-          setAccountChainId(BigInt(chainId));
-        } else if (chain?.id) {
-          setAccountChainId(BigInt(chain.id));
-        }
-      } catch (err) {
-        console.error("Failed to get chainId:", err);
-        if (chain?.id) {
-          setAccountChainId(BigInt(chain.id));
-        }
-      }
-    };
+    // effect to get chain id and address from account
+    useEffect(() => {
+        const getChainId = async () => {
+            try {
+                if (account?.channel?.getChainId) {
+                    const chainId = await account.channel.getChainId();
+                    setAccountChainId(BigInt(chainId));
+                } else if (chain?.id) {
+                    setAccountChainId(BigInt(chain.id));
+                }
+            } catch (err) {
+                console.error("Failed to get chainId:", err);
+                if (chain?.id) {
+                    setAccountChainId(BigInt(chain.id));
+                }
+            }
+        };
 
-    getChainId();
-  }, [account, status, chain?.id]);
+        getChainId();
+    }, [account, status, chain?.id]);
 
-  useEffect(() => {
-    const handleChainChange = (event: { chainId?: bigint }) => {
-      const { chainId } = event;
-      if (chainId && chainId !== accountChainId) {
-        setAccountChainId(chainId);
-      }
-    };
-    connector?.on("change", handleChainChange);
-    return () => {
-      connector?.off("change", handleChainChange);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connector]);
+    useEffect(() => {
+        const handleChainChange = (event: { chainId?: bigint }) => {
+            const { chainId } = event;
+            if (chainId && chainId !== accountChainId) {
+                setAccountChainId(chainId);
+            }
+        };
+        connector?.on("change", handleChainChange);
+        return () => {
+            connector?.off("change", handleChainChange);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [connector]);
 
-  if (status === "disconnected" || wasDisconnectedManually) {
-    return <ConnectModal />;
-  }
-
-  const isLoading =
-    status === "connected" &&
-    (!accountAddress || !chain?.name || accountChainId === 0n);
-
-  if (isLoading) {
-    return (
-      <button
-        type="button"
-        disabled
-        className="w-36 h-10 rounded-xl bg-gray-200 dark:bg-gray-700 animate-pulse"
-      >
-        &nbsp;
-      </button>
-    );
-  }
-
-  if (status === "connected" && accountAddress) {
-    const isWrongNetwork =
-      accountChainId !== 0n &&
-      targetNetwork.id !== undefined &&
-      accountChainId !== BigInt(targetNetwork.id);
-
-    if (isWrongNetwork) {
-      return <WrongNetworkDropdown />;
+    if (status === "disconnected" || wasDisconnectedManually) {
+        return <ConnectModal />;
     }
 
-    return (
-      <>
-        <div className="flex flex-col items-center mr-1">
-          <Balance
-            address={accountAddress as Address}
-            className="min-h-0 h-auto"
-          />
-          <span className="text-xs" style={{ color: networkColor }}>
-            {chain?.name}
-          </span>
-        </div>
-        <AddressInfoDropdown
-          address={accountAddress as Address}
-          displayName={accountAddress}
-          blockExplorerAddressLink={blockExplorerAddressLink}
-        />
-        <AddressQRCodeModal
-          address={accountAddress as Address}
-          modalId="qrcode-modal"
-        />
-      </>
-    );
-  }
+    const isLoading = status === "connected" && (!accountAddress || !chain?.name || accountChainId === 0n);
 
-  return null;
+    if (isLoading) {
+        return (
+            <button type="button" disabled className="w-36 h-10 rounded-xl bg-gray-200 dark:bg-gray-700 animate-pulse">
+                &nbsp;
+            </button>
+        );
+    }
+
+    if (status === "connected" && accountAddress) {
+        const isWrongNetwork =
+            accountChainId !== 0n && targetNetwork.id !== undefined && accountChainId !== BigInt(targetNetwork.id);
+
+        if (isWrongNetwork) {
+            return <WrongNetworkDropdown />;
+        }
+
+        return (
+            <>
+                <div className="flex flex-col items-center mr-1">
+                    <Balance address={accountAddress as Address} className="min-h-0 h-auto" />
+                    <span className="text-xs" style={{ color: networkColor }}>
+                        {chain?.name}
+                    </span>
+                </div>
+                <AddressInfoDropdown
+                    address={accountAddress as Address}
+                    displayName={accountAddress}
+                    blockExplorerAddressLink={blockExplorerAddressLink}
+                />
+                <AddressQRCodeModal address={accountAddress as Address} modalId="qrcode-modal" />
+            </>
+        );
+    }
+
+    return null;
 };

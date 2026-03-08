@@ -124,10 +124,11 @@ export const BeneficiariesList = () => {
             {/* Toast notification */}
             {toast && (
                 <div
-                    className={`absolute top-4 left-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-medium transition-all ${toast.type === "success"
+                    className={`absolute top-4 left-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                        toast.type === "success"
                             ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
                             : "bg-red-500/10 border border-red-500/20 text-red-400"
-                        }`}
+                    }`}
                 >
                     {toast.message}
                 </div>
