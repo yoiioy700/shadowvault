@@ -21,7 +21,7 @@ export class KeplrConnector extends InjectedConnector {
     private __options: InjectedConnectorOptions;
     // InjectedConnector inherits emit() from its EventEmitter base but TypeScript
     // doesn't expose it as public on the type. We redeclare it here so subclass usage compiles.
-    declare public emit: (event: string, ...args: any[]) => void;
+    declare public emit: (event: string, ...args: any[]) => boolean;
 
     constructor() {
         const options: InjectedConnectorOptions = {
