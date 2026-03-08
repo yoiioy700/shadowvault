@@ -4,6 +4,7 @@ import { BalanceCard } from "./BalanceCard";
 import { HeartbeatPanel } from "./HeartbeatPanel";
 import { BeneficiariesList } from "./BeneficiariesList";
 import { AgentPanel } from "./AgentPanel";
+import { DistributionPanel } from "./DistributionPanel";
 
 const CONTRACT_ADDRESS = "0x25ba5a7e97e079e1fb7e580e63701fe00ae9ef4e2686e2f4cac0600b1993e34";
 
@@ -42,6 +43,11 @@ export const VaultDashboard = () => {
                         <BeneficiariesList />
                         <AgentPanel />
                     </div>
+                </div>
+
+                {/* Distribution Panel - Full Width */}
+                <div className="mt-8">
+                    <DistributionPanel />
                 </div>
             </div>
         </div>
