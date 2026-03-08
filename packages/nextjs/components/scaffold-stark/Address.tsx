@@ -47,7 +47,12 @@ export const Address = ({ address, disableAddressLink, format, profile, isLoadin
             return "0x0";
         }
 
-        return getChecksumAddress(address);
+        try {
+            return getChecksumAddress(address);
+        } catch (error) {
+            console.error("Failed to checksum address:", address, error);
+            return undefined;
+        }
     }, [address]);
 
     const blockExplorerAddressLink = getBlockExplorerAddressLink(targetNetwork, checkSumAddress || address || "");
