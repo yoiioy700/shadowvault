@@ -51,63 +51,79 @@ export const DistributionPanel = () => {
         }
     };
 
+    const statCard = (title: string, value: string, valueClass?: string) => (
+        <div className="flex flex-col gap-1 rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5">
+            <span className="text-xs text-white/40 font-medium uppercase tracking-widest">{title}</span>
+            <span className={`text-xl font-semibold ${valueClass ?? "text-white"}`}>{value}</span>
+        </div>
+    );
+
     return (
-        <div className="card bg-base-200 shadow-xl">
-            <div className="card-body">
-                <h2 className="card-title text-2xl">Distribution</h2>
+        <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-8">
+            <h2 className="text-2xl font-semibold tracking-tight mb-6">Distribution</h2>
 
-                <div className="grid grid-cols-2 gap-4 my-4">
-                    <div className="stat bg-base-100 rounded-xl p-4">
-                        <div className="stat-title">Vault Status</div>
-                        <div className={`stat-value text-lg ${isDeadBool ? "text-error" : "text-success"}`}>
-                            {isDeadBool ? "Dead (Ready)" : "Active"}
-                        </div>
-                    </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                {statCard(
+                    "Vault Status",
+                    isDeadBool ? "Dead" : "Active",
+                    isDeadBool ? "text-red-400" : "text-emerald-400",
+                )}
+                {statCard(
+                    "Distribution",
+                    hasBeenDistributed ? "Completed" : "Pending",
+                    hasBeenDistributed ? "text-emerald-400" : "text-yellow-400",
+                )}
+                {statCard("Beneficiaries", String(beneficiaryCountNum))}
+                {statCard(
+                    "Vault Balance",
+                    balanceNum > 0 ? `${(balanceNum / 1e18).toFixed(4)} STRK` : "0 STRK",
+                )}
+            </div>
 
-                    <div className="stat bg-base-100 rounded-xl p-4">
-                        <div className="stat-title">Distribution</div>
-                        <div className={`stat-value text-lg ${hasBeenDistributed ? "text-success" : "text-warning"}`}>
-                            {hasBeenDistributed ? "Completed" : "Pending"}
-                        </div>
-                    </div>
-
-                    <div className="stat bg-base-100 rounded-xl p-4">
-                        <div className="stat-title">Beneficiaries</div>
-                        <div className="stat-value text-lg">{beneficiaryCountNum}</div>
-                    </div>
-
-                    <div className="stat bg-base-100 rounded-xl p-4">
-                        <div className="stat-title">Remaining Balance</div>
-                        <div className="stat-value text-lg">{balanceNum}</div>
-                    </div>
+            {!address && (
+                <div className="rounded-xl border border-yellow-400/20 bg-yellow-400/5 px-4 py-3 text-sm text-yellow-300 mb-4">
+                    Connect your wallet to trigger distribution.
                 </div>
+            )}
 
-                {canDistribute && (
-                    <div className="card-actions justify-end mt-4">
-                        <button
-                            className={`btn btn-error btn-lg ${isDistributing ? "loading" : ""}`}
-                            onClick={handleDistribute}
-                            disabled={isDistributing}
-                        >
-                            {isDistributing ? "Distributing..." : "Trigger Distribution"}
-                        </button>
-                    </div>
-                )}
+            {address && !isDeadBool && (
+                <div className="rounded-xl border border-blue-400/20 bg-blue-400/5 px-4 py-3 text-sm text-blue-300 mb-4">
+                    Vault is active. Distribution can only be triggered after the heartbeat interval expires.
+                </div>
+            )}
 
-                {hasBeenDistributed && (
-                    <div className="alert alert-success mt-4">
-                        <span>Distribution has been completed. All funds have been sent to beneficiaries.</span>
-                    </div>
-                )}
+            {hasBeenDistributed && (
+                <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/5 px-4 py-3 text-sm text-emerald-300 mb-4">
+                    Distribution completed. Assets have been sent to all beneficiaries.
+                </div>
+            )}
 
-                {!isDeadBool && (
-                    <div className="alert alert-info mt-4">
-                        <span>
-                            Distribution can only be triggered when the vault owner is marked as dead (heartbeat
-                            expired).
+            <div className="flex justify-end mt-2">
+                <button
+                    className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all ${
+                        canDistribute && !isDistributing
+                            ? "bg-red-500/90 hover:bg-red-500 text-white"
+                            : "bg-white/[0.04] text-white/30 cursor-not-allowed"
+                    }`}
+                    onClick={handleDistribute}
+                    disabled={!canDistribute || isDistributing}
+                >
+                    {isDistributing ? (
+                        <span className="flex items-center gap-2">
+                            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                            </svg>
+                            Distributing...
                         </span>
-                    </div>
-                )}
+                    ) : hasBeenDistributed ? (
+                        "Already Distributed"
+                    ) : canDistribute ? (
+                        "Trigger Distribution"
+                    ) : (
+                        "Distribution Not Available"
+                    )}
+                </button>
             </div>
         </div>
     );
