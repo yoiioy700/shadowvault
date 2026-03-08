@@ -59,6 +59,8 @@ pub mod ShadowVault {
     pub const DEFAULT_HEARTBEAT_INTERVAL: u64 = 2592000;
     // Basis points denominator (10000 = 100%)
     pub const BPS_DENOMINATOR: u256 = 10000;
+    // Maximum number of beneficiaries per vault (prevents unbounded loop DoS)
+    pub const MAX_BENEFICIARIES: u32 = 20;
 
     // ==================== EVENTS ====================
 
@@ -181,7 +183,8 @@ pub mod ShadowVault {
             let token = IERC20Dispatcher { contract_address: self.token_address.read() };
 
             // Transfer tokens from user to vault
-            token.transfer_from(caller, get_contract_address(), amount);
+            let success = token.transfer_from(caller, get_contract_address(), amount);
+            assert(success, 'transfer_from failed');
 
             // Update balance
             let current_balance = self.balances.read(caller);
@@ -277,9 +280,10 @@ pub mod ShadowVault {
             assert(!self.has_been_distributed.read(caller), 'Already distributed');
 
             let count = self.beneficiary_count.read(caller);
+            assert(count < MAX_BENEFICIARIES, 'Max beneficiaries reached');
             let mut found = false;
             let mut found_index: u32 = 0;
-            let mut total_existing_shares: u16 = 0;
+            let mut total_existing_shares: u32 = 0;
             let mut i: u32 = 0;
 
             while i < count {
@@ -289,13 +293,13 @@ pub mod ShadowVault {
                     found = true;
                     found_index = i;
                 } else {
-                    total_existing_shares += share; // exclude current beneficiary dari total
+                    total_existing_shares += share.into(); // exclude current beneficiary dari total
                 }
                 i += 1;
             }
 
-            // Validate total won't exceed 10000 bps
-            assert(total_existing_shares + share_bps <= 10000, 'Total shares exceed 100%');
+            // Validate total won't exceed 10000 bps (using u32 to prevent overflow)
+            assert(total_existing_shares + share_bps.into() <= 10000_u32, 'Total shares exceed 100%');
 
             if found {
                 self.beneficiary_share.write((caller, found_index), share_bps);
@@ -372,10 +376,14 @@ pub mod ShadowVault {
             let total_balance = self.balances.read(user);
             assert(total_balance > 0, 'No funds to distribute');
 
-            let token = IERC20Dispatcher { contract_address: self.token_address.read() };
             let count = self.beneficiary_count.read(user);
             assert(count > 0, 'No beneficiaries set');
 
+            // CEI: update state BEFORE external calls to prevent reentrancy
+            self.balances.write(user, 0);
+            self.has_been_distributed.write(user, true);
+
+            let token = IERC20Dispatcher { contract_address: self.token_address.read() };
             let mut total_distributed: u256 = 0;
             let mut i: u32 = 0;
             while i < count {
@@ -395,9 +403,6 @@ pub mod ShadowVault {
                 }
                 i += 1;
             }
-
-            self.balances.write(user, 0); // guaranteed zero sekarang
-            self.has_been_distributed.write(user, true);
 
             self.emit(DistributionTriggered { user, total_distributed });
         }
@@ -423,6 +428,7 @@ pub mod ShadowVault {
             let caller = get_caller_address();
             let authorized_agent = self.user_agent.read(user);
             assert(caller == authorized_agent, 'Not authorized agent');
+            assert(!self.is_dead(user), 'Vault is in dead state');
             assert(amount > 0, 'Amount must be > 0');
 
             let current_balance = self.balances.read(user);
