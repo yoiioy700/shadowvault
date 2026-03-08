@@ -1,11 +1,22 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useAccount } from "@starknet-react/core";
+import { useAccount } from "~~/hooks/useAccount";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-stark/useScaffoldReadContract";
 import { useScaffoldWriteContract } from "~~/hooks/scaffold-stark/useScaffoldWriteContract";
 import { AddressInput } from "~~/components/scaffold-stark/Input/AddressInput";
 import { Address } from "~~/components/scaffold-stark/Address";
+
+const MAX_BENEFICIARIES = 20;
+
+const safeBigInt = (val: string): bigint | null => {
+    try {
+        const n = BigInt(val);
+        return n > 0n && n <= 10000n ? n : null;
+    } catch {
+        return null;
+    }
+};
 
 const BeneficiaryRow = ({ user, index }: { user: string; index: number }) => {
     const { data } = useScaffoldReadContract({
@@ -45,6 +56,12 @@ export const BeneficiariesList = () => {
     const [newBeneficiary, setNewBeneficiary] = useState("");
     const [newShare, setNewShare] = useState("");
     const [isAdding, setIsAdding] = useState(false);
+    const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+    const showToast = (message: string, type: "success" | "error") => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 4000);
+    };
 
     const { data: beneficiaryCountObj } = useScaffoldReadContract({
         contractName: "ShadowVault",
@@ -52,41 +69,66 @@ export const BeneficiariesList = () => {
         args: address ? [address as string] : [] as any,
     });
 
+    const parsedShare = safeBigInt(newShare);
+
     const { sendAsync: setBeneficiaryAsync } = useScaffoldWriteContract({
         contractName: "ShadowVault",
         functionName: "set_beneficiary",
-        args: [newBeneficiary, newShare ? BigInt(newShare) : BigInt(0)],
+        args: [newBeneficiary, parsedShare ?? BigInt(0)],
     });
 
     const handleAddBeneficiary = async () => {
-        if (!newBeneficiary || !newShare) return;
+        if (!newBeneficiary) {
+            showToast("Enter a wallet address", "error");
+            return;
+        }
+        if (!parsedShare) {
+            showToast("Enter a valid share between 1-10000 BPS", "error");
+            return;
+        }
+        if (beneficiaryCount >= MAX_BENEFICIARIES) {
+            showToast(`Maximum ${MAX_BENEFICIARIES} beneficiaries reached`, "error");
+            return;
+        }
         setIsAdding(true);
         try {
             await setBeneficiaryAsync();
             setNewBeneficiary("");
             setNewShare("");
-        } catch (e) {
+            showToast("Beneficiary added successfully", "success");
+        } catch (e: any) {
             console.error("Error adding beneficiary:", e);
+            showToast(e?.message?.slice(0, 80) || "Failed to add beneficiary", "error");
         } finally {
             setIsAdding(false);
         }
     };
 
     const beneficiaryCount = beneficiaryCountObj ? Number(beneficiaryCountObj.toString()) : 0;
-    const indices = useMemo(() => Array.from({ length: Math.min(beneficiaryCount, 20) }, (_, i) => i), [beneficiaryCount]);
-
-    // Calculate total allocated BPS for the progress bar
-    const totalAllocated = 0; // Will be calculated per-row in future; for now show count
+    const indices = useMemo(() => Array.from({ length: Math.min(beneficiaryCount, MAX_BENEFICIARIES) }, (_, i) => i), [beneficiaryCount]);
 
     return (
         <div className="bg-[#0a0a0c] p-6 sm:p-8 rounded-2xl border border-white/[0.08] shadow-2xl relative overflow-hidden flex flex-col">
+            {/* Toast notification */}
+            {toast && (
+                <div className={`absolute top-4 left-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                    toast.type === "success"
+                        ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                        : "bg-red-500/10 border border-red-500/20 text-red-400"
+                }`}>
+                    {toast.message}
+                </div>
+            )}
+
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h2 className="text-xl font-medium text-white tracking-tight">Beneficiaries</h2>
                     <p className="text-xs text-white/30 mt-1">Configure how your vault is distributed</p>
                 </div>
                 <div className="px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.06]">
-                    <span className="text-xs text-white/50 font-mono">{beneficiaryCount} {beneficiaryCount === 1 ? "heir" : "heirs"}</span>
+                    <span className="text-xs text-white/50 font-mono">
+                        {beneficiaryCount}/{MAX_BENEFICIARIES} {beneficiaryCount === 1 ? "heir" : "heirs"}
+                    </span>
                 </div>
             </div>
 
@@ -132,7 +174,7 @@ export const BeneficiariesList = () => {
                         <button
                             className="px-6 py-2 text-xs text-black bg-white hover:bg-white/90 transition-colors rounded-lg font-bold disabled:opacity-40 disabled:cursor-not-allowed uppercase tracking-wider whitespace-nowrap"
                             onClick={handleAddBeneficiary}
-                            disabled={!newBeneficiary || !newShare || !address || isAdding}
+                            disabled={!newBeneficiary || !parsedShare || !address || isAdding || beneficiaryCount >= MAX_BENEFICIARIES}
                         >
                             {isAdding ? "..." : "Add"}
                         </button>
