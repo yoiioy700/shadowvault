@@ -1,14 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { useAccount } from "@starknet-react/core";
+import { useAccount } from "~~/hooks/useAccount";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-stark/useScaffoldReadContract";
 import { useScaffoldWriteContract } from "~~/hooks/scaffold-stark/useScaffoldWriteContract";
 import { useScaffoldMultiWriteContract } from "~~/hooks/scaffold-stark/useScaffoldMultiWriteContract";
 import { cairo } from "starknet";
+import deployedContracts from "~~/contracts/deployedContracts";
 
-const VAULT_ADDRESS = "0x25ba5a7e97e079e1fb7e580e63701fe00ae9ef4e2686e2f4cac0600b1993e34";
 const STRK_ADDRESS = "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
+
+// Derive vault address from deployedContracts instead of hardcoding
+const VAULT_ADDRESS =
+    (deployedContracts as any)?.sepolia?.ShadowVault?.address ??
+    (deployedContracts as any)?.devnet?.ShadowVault?.address ??
+    "";
 
 const formatBalance = (wei: bigint | undefined): string => {
     if (!wei) return "0.00";
@@ -40,6 +46,12 @@ export const BalanceCard = () => {
     const [withdrawAmount, setWithdrawAmount] = useState("");
     const [isDepositing, setIsDepositing] = useState(false);
     const [isWithdrawing, setIsWithdrawing] = useState(false);
+    const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+    const showToast = (message: string, type: "success" | "error") => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 4000);
+    };
 
     const { data: balance, isLoading: isBalanceLoading } = useScaffoldReadContract({
         contractName: "ShadowVault",
@@ -76,26 +88,30 @@ export const BalanceCard = () => {
     });
 
     const handleDeposit = async () => {
-        if (!depositAmount) return;
+        if (!depositAmount || parsedDepositAmount === 0n) return;
         setIsDepositing(true);
         try {
             await depositAsync();
             setDepositAmount("");
-        } catch (e) {
+            showToast(`Deposited ${depositAmount} STRK successfully`, "success");
+        } catch (e: any) {
             console.error("Error depositing:", e);
+            showToast(e?.message?.slice(0, 80) || "Deposit failed", "error");
         } finally {
             setIsDepositing(false);
         }
     };
 
     const handleWithdraw = async () => {
-        if (!withdrawAmount) return;
+        if (!withdrawAmount || parsedWithdrawAmount === 0n) return;
         setIsWithdrawing(true);
         try {
             await withdrawAsync();
             setWithdrawAmount("");
-        } catch (e) {
+            showToast(`Withdrew ${withdrawAmount} STRK successfully`, "success");
+        } catch (e: any) {
             console.error("Error withdrawing:", e);
+            showToast(e?.message?.slice(0, 80) || "Withdraw failed", "error");
         } finally {
             setIsWithdrawing(false);
         }
@@ -106,6 +122,17 @@ export const BalanceCard = () => {
 
     return (
         <div className="bg-[#0a0a0c] p-6 sm:p-8 rounded-2xl border border-white/[0.08] shadow-2xl relative overflow-hidden flex flex-col">
+            {/* Toast notification */}
+            {toast && (
+                <div className={`absolute top-4 left-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                    toast.type === "success"
+                        ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                        : "bg-red-500/10 border border-red-500/20 text-red-400"
+                }`}>
+                    {toast.message}
+                </div>
+            )}
+
             {/* Subtle gradient accent */}
             <div className="absolute top-0 right-0 w-[200px] h-[200px] bg-indigo-500/[0.04] blur-[80px] rounded-full pointer-events-none" />
 
