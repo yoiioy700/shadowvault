@@ -21,8 +21,8 @@ import { ContractClassHashCache } from "./ContractClassHashCache";
 export const useDeployedContractInfo = <TContractName extends ContractName>(contractName: TContractName) => {
     const isMounted = useIsMounted();
     const { targetNetwork } = useTargetNetwork();
-    const deployedContract = contracts?.[targetNetwork.network]?.[
-        contractName as ContractName
+    const deployedContract = contracts?.[targetNetwork.network as string]?.[
+        contractName as string
     ] as Contract<TContractName>;
     const [status, setStatus] = useState<ContractCodeStatus>(ContractCodeStatus.LOADING);
     const { provider: publicClient } = useProvider();

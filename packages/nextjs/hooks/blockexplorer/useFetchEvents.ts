@@ -530,7 +530,7 @@ export function useFetchEvents(options: UseFetchEventsOptions = {}): UseFetchEve
         enabled: !!(publicClient && (address || transactionHash)),
         staleTime: 30 * 1000, // 30 seconds
         retry: 2,
-        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+        retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 10000),
     });
 
     const totalPages = data ? Math.ceil(data.totalEvents / pageSize) : 0;

@@ -71,8 +71,8 @@ export const useScaffoldMultiWriteContract = <
                         const functionName = call.functionName;
                         const contractName = call.contractName;
                         const unParsedArgs = call.args as any[];
-                        const contract = contracts?.[targetNetwork.network]?.[
-                            contractName as ContractName
+                        const contract = contracts?.[targetNetwork.network as string]?.[
+                            contractName as string
                         ] as Contract<TContractName>;
                         // we convert to starknetjs contract instance here since deployed data may be undefined if contract is not deployed
                         const contractInstance = new StarknetJsContract({

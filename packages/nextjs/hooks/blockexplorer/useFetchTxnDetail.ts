@@ -297,7 +297,7 @@ export const useFetchTxnDetail = (txHash?: string) => {
         enabled: !!txHash && !!provider,
         staleTime: 5 * 1000, // 5 seconds
         retry: 3,
-        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+        retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
     });
 
     return {

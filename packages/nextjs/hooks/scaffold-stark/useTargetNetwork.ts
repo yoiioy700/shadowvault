@@ -15,8 +15,8 @@ import { ChainWithAttributes } from "~~/utils/scaffold-stark";
  */
 export function useTargetNetwork(): { targetNetwork: ChainWithAttributes } {
     const { chainId } = useAccount();
-    const targetNetwork = useGlobalState(({ targetNetwork }) => targetNetwork);
-    const setTargetNetwork = useGlobalState(({ setTargetNetwork }) => setTargetNetwork);
+    const targetNetwork = useGlobalState((state) => state.targetNetwork);
+    const setTargetNetwork = useGlobalState((state) => state.setTargetNetwork);
 
     useEffect(() => {
         const newSelectedNetwork = scaffoldConfig.targetNetworks.find((targetNetwork) => targetNetwork.id === chainId);
