@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useCallback, useRef, useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bars3Icon, BugAntIcon } from "@heroicons/react/24/outline";
@@ -10,23 +9,19 @@ import { CustomConnectButton } from "~~/components/scaffold-stark/CustomConnectB
 import { useTheme } from "next-themes";
 import { useTargetNetwork } from "~~/hooks/scaffold-stark/useTargetNetwork";
 import { devnet } from "@starknet-react/chains";
-import { SwitchTheme } from "./SwitchTheme";
 import { useAccount, useNetwork, useProvider } from "@starknet-react/core";
-import { BlockIdentifier } from "starknet";
 
-type HeaderMenuLink = {
-  label: string;
-  href: string;
-  icon?: React.ReactNode;
-};
-
-export const menuLinks: HeaderMenuLink[] = [
+export const menuLinks = [
   {
-    label: "Home",
-    href: "/",
+    label: "Dashboard",
+    href: "/app",
   },
   {
-    label: "Debug Contracts",
+    label: "Landing",
+    href: "/landing",
+  },
+  {
+    label: "Debug",
     href: "/debug",
     icon: <BugAntIcon className="h-4 w-4" />,
   },
@@ -34,12 +29,7 @@ export const menuLinks: HeaderMenuLink[] = [
 
 export const HeaderMenuLinks = () => {
   const pathname = usePathname();
-  const { theme } = useTheme();
-  const [isDark, setIsDark] = useState(false);
 
-  useEffect(() => {
-    setIsDark(theme === "dark");
-  }, [theme]);
   return (
     <>
       {menuLinks.map(({ label, href, icon }) => {
@@ -49,11 +39,10 @@ export const HeaderMenuLinks = () => {
             <Link
               href={href}
               passHref
-              className={`${
-                isActive
-                  ? "bg-gradient-nav text-white! active:bg-gradient-nav shadow-md"
-                  : ""
-              } py-1.5 px-3 text-sm rounded-full gap-2 grid grid-flow-col hover:bg-gradient-nav hover:text-white`}
+              className={`${isActive
+                  ? "bg-white/10 text-white"
+                  : "text-white/60"
+                } py-2 px-4 text-sm rounded-full gap-2 flex items-center hover:bg-white/5 hover:text-white transition-colors font-medium`}
             >
               {icon}
               <span>{label}</span>
@@ -78,12 +67,17 @@ export const Header = () => {
   );
 
   const { targetNetwork } = useTargetNetwork();
-  const isLocalNetwork = targetNetwork.network === devnet.network;
-
   const { provider } = useProvider();
   const { address, status, chainId } = useAccount();
   const { chain } = useNetwork();
   const [isDeployed, setIsDeployed] = useState(true);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     if (
@@ -100,9 +94,7 @@ export const Header = () => {
         })
         .catch((e) => {
           console.error("contract check", e);
-          if (e.toString().includes("Contract not found")) {
-            setIsDeployed(false);
-          }
+          if (e.toString().includes("Contract not found")) setIsDeployed(false);
         });
     }
   }, [
@@ -116,69 +108,50 @@ export const Header = () => {
   ]);
 
   return (
-    <div className=" lg:static top-0 navbar min-h-0 shrink-0 justify-between z-20 px-0 sm:px-2">
-      <div className="navbar-start w-auto lg:w-1/2 -mr-2">
-        <div className="lg:hidden dropdown" ref={burgerMenuRef}>
-          <label
-            tabIndex={0}
-            className={`ml-1 btn btn-ghost 
-              [@media(max-width:379px)]:px-3! [@media(max-width:379px)]:py-1! 
-              [@media(max-width:379px)]:h-9! [@media(max-width:379px)]:min-h-0!
-              [@media(max-width:379px)]:w-10!
-              ${isDrawerOpen ? "hover:bg-secondary" : "hover:bg-transparent"}`}
-            onClick={() => {
-              setIsDrawerOpen((prevIsOpenState) => !prevIsOpenState);
-            }}
+    <div className={`sticky top-0 z-50 transition-all duration-500 min-h-20 flex items-center justify-between px-6 sm:px-8 border-b ${scrolled ? "bg-[#050507]/80 backdrop-blur-xl border-white/[0.05]" : "bg-[#020202] border-transparent"}`}>
+      <div className="flex items-center gap-6">
+        <div className="lg:hidden" ref={burgerMenuRef}>
+          <button
+            className="text-white/80 p-2 hover:bg-white/5 rounded-lg transition-colors"
+            onClick={() => setIsDrawerOpen((prev) => !prev)}
           >
-            <Bars3Icon className="h-1/2" />
-          </label>
+            <Bars3Icon className="h-6 w-6" />
+          </button>
           {isDrawerOpen && (
             <ul
-              tabIndex={0}
-              className="menu menu-compact dropdown-content mt-3 p-2 shadow-sm rounded-box w-52 bg-base-100"
-              onClick={() => {
-                setIsDrawerOpen(false);
-              }}
+              className="absolute top-20 left-4 bg-[#0a0a0c] border border-white/10 p-4 shadow-2xl rounded-2xl w-56 flex flex-col gap-2 z-50"
+              onClick={() => setIsDrawerOpen(false)}
             >
               <HeaderMenuLinks />
             </ul>
           )}
         </div>
+
         <Link
           href="/"
           passHref
-          className="hidden lg:flex items-center gap-2 ml-4 mr-6 shrink-0"
+          className="flex items-center gap-3 shrink-0"
         >
-          <div className="flex relative w-10 h-10">
-            <Image
-              alt="SE2 logo"
-              className="cursor-pointer"
-              fill
-              src="/logo.svg"
-            />
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.4)]">
+            <div className="w-3.5 h-3.5 bg-black rounded-sm" />
           </div>
-          <div className="flex flex-col">
-            <span className="font-bold leading-tight">Scaffold-Stark</span>
-            <span className="text-xs">Starknet dev stack</span>
-          </div>
+          <span className="font-sans text-xl text-white tracking-tight font-semibold hidden sm:block">
+            ShadowVault
+          </span>
         </Link>
-        <ul className="hidden lg:flex lg:flex-nowrap menu menu-horizontal px-1 gap-2">
+
+        <ul className="hidden lg:flex items-center gap-2 ml-4">
           <HeaderMenuLinks />
         </ul>
       </div>
-      <div className="navbar-end grow mr-2 gap-4">
+
+      <div className="flex items-center gap-4">
         {status === "connected" && !isDeployed ? (
-          <span className="bg-[#8a45fc] text-[9px] p-1 text-white">
+          <span className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs px-3 py-1.5 rounded-full font-medium hidden sm:inline-block">
             Wallet Not Deployed
           </span>
         ) : null}
         <CustomConnectButton />
-        {/* <FaucetButton /> */}
-        <SwitchTheme
-          className={`pointer-events-auto ${
-            isLocalNetwork ? "mb-1 lg:mb-0" : ""
-          }`}
-        />
       </div>
     </div>
   );

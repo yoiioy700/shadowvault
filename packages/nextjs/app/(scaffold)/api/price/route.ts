@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 export async function GET(_: Request) {
   const apiUrl =
     "https://api.coingecko.com/api/v3/simple/price?ids=starknet&vs_currencies=usd";

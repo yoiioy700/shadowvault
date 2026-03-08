@@ -1,5 +1,5 @@
 import { Abi } from "abi-wan-kanabi";
-import { WriteOnlyFunctionForm } from "~~/app/debug/_components/contract";
+import { WriteOnlyFunctionForm } from "~~/app/(scaffold)/debug/_components/contract";
 import {
   Contract,
   ContractName,
@@ -39,7 +39,7 @@ export const ContractWriteMethods = ({
           abiFunction={fn}
           onChange={onChange}
           contractAddress={deployedContractData.address}
-          //   inheritedFrom={inheritedFrom}
+        //   inheritedFrom={inheritedFrom}
         />
       ))}
     </>

@@ -1,26 +1,21 @@
 import type { Metadata } from "next";
-import { ScaffoldStarkAppWithProviders } from "~~/components/ScaffoldStarkAppWithProviders";
 import "~~/styles/globals.css";
-import { ThemeProvider } from "~~/components/ThemeProvider";
 
 export const metadata: Metadata = {
-  title: "Scaffold-Stark",
-  description: "Fast track your starknet journey",
+  title: "ShadowVault — Secure Your Digital Legacy",
+  description: "The first autonomous, privacy-preserving Dead Man's Switch on Starknet.",
   icons: "/logo.ico",
 };
 
-const ScaffoldStarkApp = ({ children }: { children: React.ReactNode }) => {
+const RootLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <html suppressHydrationWarning>
       <body suppressHydrationWarning>
-        <ThemeProvider enableSystem>
-          <ScaffoldStarkAppWithProviders>
-            {children}
-          </ScaffoldStarkAppWithProviders>
-        </ThemeProvider>
+        {children}
       </body>
     </html>
   );
 };
 
-export default ScaffoldStarkApp;
+export default RootLayout;
+

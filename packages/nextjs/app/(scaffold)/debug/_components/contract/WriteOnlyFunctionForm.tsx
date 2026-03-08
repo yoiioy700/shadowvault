@@ -11,7 +11,7 @@ import {
   FormErrorMessageState,
   getTopErrorMessage,
   isError,
-} from "~~/app/debug/_components/contract";
+} from "~~/app/(scaffold)/debug/_components/contract";
 import { useTargetNetwork } from "~~/hooks/scaffold-stark/useTargetNetwork";
 import { useNetwork, useContract } from "@starknet-react/core";
 import { Abi } from "abi-wan-kanabi";
@@ -81,11 +81,11 @@ export const WriteOnlyFunctionForm = ({
       const txHash = await writeTransaction(
         !!contractInstance
           ? [
-              contractInstance.populate(
-                abiFunction.name,
-                getArgsAsStringInputFromForm(form),
-              ),
-            ]
+            contractInstance.populate(
+              abiFunction.name,
+              getArgsAsStringInputFromForm(form),
+            ),
+          ]
           : [],
       );
       try {
@@ -99,7 +99,7 @@ export const WriteOnlyFunctionForm = ({
           message,
           input: inputStr,
         });
-      } catch {}
+      } catch { }
     } catch (e: any) {
       const errorPattern = /Contract (.*?)"}/;
       const match = errorPattern.exec(e.message);
@@ -120,7 +120,7 @@ export const WriteOnlyFunctionForm = ({
           message,
           input: inputStr,
         });
-      } catch {}
+      } catch { }
     }
   };
 
@@ -162,9 +162,8 @@ export const WriteOnlyFunctionForm = ({
   return (
     <div className="py-5 space-y-3 first:pt-0 last:pb-1">
       <div
-        className={`flex gap-3 ${
-          zeroInputs ? "flex-row justify-between items-center" : "flex-col"
-        }`}
+        className={`flex gap-3 ${zeroInputs ? "flex-row justify-between items-center" : "flex-col"
+          }`}
       >
         <p className="font-medium my-0 break-words text-function">
           {abiFunction.name}
@@ -178,10 +177,9 @@ export const WriteOnlyFunctionForm = ({
             ) : null}
           </div>
           <div
-            className={`flex ${
-              !!errorMsg &&
+            className={`flex ${!!errorMsg &&
               "tooltip before:content-[attr(data-tip)] before:right-[-10px] before:left-auto before:transform-none"
-            }`}
+              }`}
             data-tip={`${errorMsg}`}
           >
             <button

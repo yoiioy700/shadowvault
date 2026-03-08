@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 
 const ContractUI = dynamic(
   () =>
-    import("~~/app/debug/_components/contract/ContractUI").then(
+    import("~~/app/(scaffold)/debug/_components/contract/ContractUI").then(
       (mod) => mod.ContractUI,
     ),
   { ssr: false },
@@ -42,11 +42,10 @@ export function DebugContracts() {
             <div className="flex flex-row gap-2 w-full max-w-7xl pb-1 px-6 lg:px-10 flex-wrap">
               {contractNames.map((contractName) => (
                 <button
-                  className={`btn btn-secondary btn-sm font-light hover:border-transparent ${
-                    contractName === selectedContract
+                  className={`btn btn-secondary btn-sm font-light hover:border-transparent ${contractName === selectedContract
                       ? "bg-secondary hover:bg-secondary no-animation  text-white"
                       : "bg-transparent text-neutral hover:text-white"
-                  }`}
+                    }`}
                   key={contractName}
                   onClick={() => setSelectedContract(contractName)}
                 >

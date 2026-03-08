@@ -12,7 +12,7 @@ import {
   isError,
   getTopErrorMessage,
   decodeContractResponse,
-} from "~~/app/debug/_components/contract";
+} from "~~/app/(scaffold)/debug/_components/contract";
 import { AbiFunction } from "~~/utils/scaffold-stark/contract";
 import { BlockNumber } from "starknet";
 import { useContract, useReadContract } from "@starknet-react/core";
@@ -114,7 +114,7 @@ export const ReadOnlyFunctionForm = ({
         message: "Read executed",
         input: inputStr,
       });
-    } catch {}
+    } catch { }
   };
 
   return (
@@ -141,10 +141,9 @@ export const ReadOnlyFunctionForm = ({
         </div>
 
         <div
-          className={`flex ${
-            isError(formErrorMessage) &&
+          className={`flex ${isError(formErrorMessage) &&
             "tooltip before:content-[attr(data-tip)] before:right-[-10px] before:left-auto before:transform-none"
-          }`}
+            }`}
           data-tip={`${getTopErrorMessage(formErrorMessage)}`}
         >
           <button
