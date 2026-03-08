@@ -137,7 +137,7 @@ export const AddressInfoDropdown = ({ address, displayName, blockExplorerAddress
                             <span className="whitespace-nowrap">View QR Code</span>
                         </label>
                     </li>
-                    {chain.network != "devnet" ? (
+                    {chain?.network != "devnet" ? (
                         <li className={selectingNetwork ? "hidden" : ""}>
                             <button className="menu-item btn-sm !rounded-xl flex gap-3" type="button">
                                 <ArrowTopRightOnSquareIcon className="h-6 w-4 ml-2 sm:ml-0" />
@@ -153,7 +153,7 @@ export const AddressInfoDropdown = ({ address, displayName, blockExplorerAddress
                         </li>
                     ) : null}
 
-                    {chain.network == "devnet" ? (
+                    {chain?.network == "devnet" ? (
                         <li className={selectingNetwork ? "hidden" : ""}>
                             <button
                                 className="menu-item btn-sm !rounded-xl flex gap-3 "

@@ -83,7 +83,7 @@ export const Header = () => {
             status === "connected" &&
             address &&
             chainId === targetNetwork.id &&
-            chain.network === targetNetwork.network
+            chain?.network === targetNetwork.network
         ) {
             provider
                 .getClassHashAt(address)
@@ -96,7 +96,7 @@ export const Header = () => {
                     if (e.toString().includes("Contract not found")) setIsDeployed(false);
                 });
         }
-    }, [status, address, provider, chainId, targetNetwork.id, targetNetwork.network, chain.network]);
+    }, [status, address, provider, chainId, targetNetwork.id, targetNetwork.network, chain?.network]);
 
     return (
         <div
