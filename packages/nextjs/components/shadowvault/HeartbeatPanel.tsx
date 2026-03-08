@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAccount } from "@starknet-react/core";
+import { useAccount } from "~~/hooks/useAccount";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-stark/useScaffoldReadContract";
 import { useScaffoldWriteContract } from "~~/hooks/scaffold-stark/useScaffoldWriteContract";
 
@@ -37,11 +37,26 @@ const PRESET_INTERVALS = [
     { label: "90 days", value: 7776000 },
 ];
 
+const safeBigInt = (val: string): bigint | null => {
+    try {
+        const n = BigInt(val);
+        return n > 0n ? n : null;
+    } catch {
+        return null;
+    }
+};
+
 export const HeartbeatPanel = () => {
     const { address } = useAccount();
     const [newInterval, setNewInterval] = useState("");
     const [isSending, setIsSending] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+    const showToast = (message: string, type: "success" | "error") => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 4000);
+    };
 
     const { data: lastHeartbeat } = useScaffoldReadContract({
         contractName: "ShadowVault",
@@ -61,6 +76,8 @@ export const HeartbeatPanel = () => {
         args: address ? [address as string] : [] as any,
     });
 
+    const parsedInterval = safeBigInt(newInterval);
+
     const { sendAsync: heartbeatAsync } = useScaffoldWriteContract({
         contractName: "ShadowVault",
         functionName: "heartbeat",
@@ -70,28 +87,35 @@ export const HeartbeatPanel = () => {
     const { sendAsync: setIntervalAsync } = useScaffoldWriteContract({
         contractName: "ShadowVault",
         functionName: "set_heartbeat_interval",
-        args: [newInterval ? BigInt(newInterval) : BigInt(0)],
+        args: [parsedInterval ?? BigInt(0)],
     });
 
     const handleHeartbeat = async () => {
         setIsSending(true);
         try {
             await heartbeatAsync();
-        } catch (e) {
+            showToast("Heartbeat sent successfully", "success");
+        } catch (e: any) {
             console.error("Error sending heartbeat:", e);
+            showToast(e?.message?.slice(0, 80) || "Heartbeat failed", "error");
         } finally {
             setIsSending(false);
         }
     };
 
     const handleSetInterval = async () => {
-        if (!newInterval) return;
+        if (!parsedInterval) {
+            showToast("Enter a valid positive number for interval", "error");
+            return;
+        }
         setIsUpdating(true);
         try {
             await setIntervalAsync();
             setNewInterval("");
-        } catch (e) {
+            showToast(`Interval updated to ${formatDuration(Number(parsedInterval))}`, "success");
+        } catch (e: any) {
             console.error("Error setting interval:", e);
+            showToast(e?.message?.slice(0, 80) || "Failed to update interval", "error");
         } finally {
             setIsUpdating(false);
         }
@@ -112,6 +136,17 @@ export const HeartbeatPanel = () => {
 
     return (
         <div className="bg-[#0a0a0c] p-6 sm:p-8 rounded-2xl border border-white/[0.08] shadow-2xl relative overflow-hidden flex flex-col">
+            {/* Toast notification */}
+            {toast && (
+                <div className={`absolute top-4 left-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                    toast.type === "success"
+                        ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                        : "bg-red-500/10 border border-red-500/20 text-red-400"
+                }`}>
+                    {toast.message}
+                </div>
+            )}
+
             {/* Subtle Top Glow */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200px] h-[100px] bg-white/[0.03] blur-[50px] rounded-full pointer-events-none z-0" />
 
@@ -161,7 +196,7 @@ export const HeartbeatPanel = () => {
                         onClick={handleHeartbeat}
                         disabled={!address || isSending}
                     >
-                        {isSending ? "Sending..." : "♥ Send Heartbeat"}
+                        {isSending ? "Sending..." : "Send Heartbeat"}
                     </button>
 
                     <div className="flex flex-col gap-3">
@@ -192,7 +227,7 @@ export const HeartbeatPanel = () => {
                             <button
                                 className="px-4 py-2 text-xs text-white/90 bg-white/10 hover:bg-white/20 transition-colors rounded-lg font-medium disabled:opacity-40 disabled:cursor-not-allowed uppercase tracking-wider whitespace-nowrap"
                                 onClick={handleSetInterval}
-                                disabled={!newInterval || !address || isUpdating}
+                                disabled={!parsedInterval || !address || isUpdating}
                             >
                                 {isUpdating ? "..." : "Set"}
                             </button>
