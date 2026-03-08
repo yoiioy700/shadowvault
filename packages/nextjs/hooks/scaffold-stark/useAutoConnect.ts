@@ -17,52 +17,38 @@ import { useAccount } from "~~/hooks/useAccount";
  * @returns {void} This hook doesn't return any value but performs auto-connection side effects
  */
 export const useAutoConnect = (): void => {
-  const savedConnector = useReadLocalStorage<{ id: string; ix?: number }>(
-    "lastUsedConnector",
-  );
-  const lastConnectionTime = useReadLocalStorage<number>(
-    LAST_CONNECTED_TIME_LOCALSTORAGE_KEY,
-  );
-  const wasDisconnectedManually = useReadLocalStorage<boolean>(
-    "wasDisconnectedManually",
-  );
+    const savedConnector = useReadLocalStorage<{ id: string; ix?: number }>("lastUsedConnector");
+    const lastConnectionTime = useReadLocalStorage<number>(LAST_CONNECTED_TIME_LOCALSTORAGE_KEY);
+    const wasDisconnectedManually = useReadLocalStorage<boolean>("wasDisconnectedManually");
 
-  const { connect, connectors } = useConnect();
-  const { account } = useAccount();
+    const { connect, connectors } = useConnect();
+    const { account } = useAccount();
 
-  const hasAutoConnected = useRef(false);
+    const hasAutoConnected = useRef(false);
 
-  useEffect(() => {
-    if (hasAutoConnected.current) return;
-    if (!scaffoldConfig.walletAutoConnect || wasDisconnectedManually) return;
+    useEffect(() => {
+        if (hasAutoConnected.current) return;
+        if (!scaffoldConfig.walletAutoConnect || wasDisconnectedManually) return;
 
-    const now = Date.now();
-    const ttlExpired =
-      now - (lastConnectionTime || 0) > scaffoldConfig.autoConnectTTL;
+        const now = Date.now();
+        const ttlExpired = now - (lastConnectionTime || 0) > scaffoldConfig.autoConnectTTL;
 
-    const connector = connectors.find((c) => c.id === savedConnector?.id);
-    if (!connector || !connector.ready) return;
+        const connector = connectors.find((c) => c.id === savedConnector?.id);
+        if (!connector || !connector.ready) return;
 
-    const shouldReconnect = !account || ttlExpired;
+        const shouldReconnect = !account || ttlExpired;
 
-    if (
-      connector.id === "burner-wallet" &&
-      savedConnector?.ix !== undefined &&
-      connector instanceof BurnerConnector
-    ) {
-      connector.burnerAccount = burnerAccounts[savedConnector.ix];
-    }
+        if (
+            connector.id === "burner-wallet" &&
+            savedConnector?.ix !== undefined &&
+            connector instanceof BurnerConnector
+        ) {
+            connector.burnerAccount = burnerAccounts[savedConnector.ix];
+        }
 
-    if (shouldReconnect) {
-      hasAutoConnected.current = true;
-      connect({ connector });
-    }
-  }, [
-    connect,
-    connectors,
-    savedConnector,
-    lastConnectionTime,
-    account,
-    wasDisconnectedManually,
-  ]);
+        if (shouldReconnect) {
+            hasAutoConnected.current = true;
+            connect({ connector });
+        }
+    }, [connect, connectors, savedConnector, lastConnectionTime, account, wasDisconnectedManually]);
 };

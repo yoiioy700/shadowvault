@@ -2,10 +2,7 @@ import { renderHook, act } from "@testing-library/react";
 
 import { vi, describe, it, expect, beforeEach, type Mock } from "vitest";
 
-import {
-  useScaffoldMultiWriteContract,
-  createContractCall,
-} from "../useScaffoldMultiWriteContract";
+import { useScaffoldMultiWriteContract, createContractCall } from "../useScaffoldMultiWriteContract";
 
 import { useTargetNetwork } from "../useTargetNetwork";
 
@@ -19,58 +16,58 @@ import { Contract, RpcProvider } from "starknet";
 
 // Mock the contracts object
 vi.mock("~~/utils/scaffold-stark/contract", () => ({
-  contracts: {
-    testNetwork: {
-      Strk: {
-        address: "0x12345",
-        abi: [{ type: "function", name: "transfer", inputs: [], outputs: [] }],
-      },
+    contracts: {
+        testNetwork: {
+            Strk: {
+                address: "0x12345",
+                abi: [{ type: "function", name: "transfer", inputs: [], outputs: [] }],
+            },
+        },
     },
-  },
-  // Add any other exports that might be needed
-  ContractName: {},
-  deepMergeContracts: (a: unknown, b: unknown) => ({
-    ...(a as object),
-    ...(b as object),
-  }),
+    // Add any other exports that might be needed
+    ContractName: {},
+    deepMergeContracts: (a: unknown, b: unknown) => ({
+        ...(a as object),
+        ...(b as object),
+    }),
 }));
 
 // Mock the external dependencies
 
 vi.mock("~~/hooks/scaffold-stark/useTargetNetwork", () => ({
-  useTargetNetwork: vi.fn(),
+    useTargetNetwork: vi.fn(),
 }));
 
 vi.mock("@starknet-react/core", () => ({
-  useSendTransaction: vi.fn(),
+    useSendTransaction: vi.fn(),
 
-  useNetwork: vi.fn().mockReturnValue({ chain: { id: 1 } }),
+    useNetwork: vi.fn().mockReturnValue({ chain: { id: 1 } }),
 }));
 
 vi.mock("starknet", () => {
-  const actualStarknet = vi.importActual("starknet");
+    const actualStarknet = vi.importActual("starknet");
 
-  return {
-    ...actualStarknet,
+    return {
+        ...actualStarknet,
 
-    Contract: vi.fn().mockImplementation(() => ({
-      populate: vi.fn().mockReturnValue({
-        contractAddress: "0x123",
-        entrypoint: "transfer",
-        calldata: ["0x1234", "1000"],
-      }),
-    })),
+        Contract: vi.fn().mockImplementation(() => ({
+            populate: vi.fn().mockReturnValue({
+                contractAddress: "0x123",
+                entrypoint: "transfer",
+                calldata: ["0x1234", "1000"],
+            }),
+        })),
 
-    RpcProvider: vi.fn(),
-  };
+        RpcProvider: vi.fn(),
+    };
 });
 
 vi.mock("../useTransactor");
 
 vi.mock("~~/hooks/scaffold-stark", () => ({
-  useDeployedContractInfo: vi.fn(),
+    useDeployedContractInfo: vi.fn(),
 
-  useTransactor: vi.fn(),
+    useTransactor: vi.fn(),
 }));
 
 const mockSendTransaction = vi.fn();
@@ -88,117 +85,115 @@ const useNetworkMock = useNetwork as Mock;
 
 // Using the test without skipping as it has been updated for the new structure
 describe("useScaffoldMultiWriteContract Hook", () => {
-  const mockAbi = [
-    { type: "function", name: "mockFunction", inputs: [], outputs: [] },
-  ];
+    const mockAbi = [{ type: "function", name: "mockFunction", inputs: [], outputs: [] }];
 
-  const mockAddress = "0x12345";
+    const mockAddress = "0x12345";
 
-  beforeEach(() => {
-    vi.resetAllMocks();
+    beforeEach(() => {
+        vi.resetAllMocks();
 
-    useTargetNetworkMock.mockReturnValue({
-      targetNetwork: { network: "testNetwork", id: 1 },
+        useTargetNetworkMock.mockReturnValue({
+            targetNetwork: { network: "testNetwork", id: 1 },
+        });
+
+        mockedUseNetwork.mockReturnValue({ chain: { id: 1 } });
+
+        useSendTransactionMock.mockReturnValue({
+            sendAsync: mockSendTransaction,
+            status: "idle",
+        });
+
+        useTransactorMock.mockReturnValue({
+            writeTransaction: vi.fn().mockResolvedValue("mock-tx-hash"),
+            sendTransactionInstance: {
+                sendAsync: vi.fn(),
+                status: "idle",
+            },
+            transactionReceiptInstance: {
+                data: null,
+                status: "idle",
+            },
+        });
+
+        useDeployedContractInfoMock.mockReturnValue({
+            data: {
+                address: "0x123",
+
+                abi: [{ name: "testFunction" }],
+            },
+        });
+
+        ContractMock.mockImplementation(() => ({
+            address: mockAddress,
+
+            abi: mockAbi,
+            populate: vi.fn().mockReturnValue({
+                contractAddress: mockAddress,
+                entrypoint: "mockFunction",
+                calldata: [],
+            }),
+        }));
     });
 
-    mockedUseNetwork.mockReturnValue({ chain: { id: 1 } });
+    it("should correctly parse contract calls", () => {
+        // Mock contract and ABI
 
-    useSendTransactionMock.mockReturnValue({
-      sendAsync: mockSendTransaction,
-      status: "idle",
+        const { result } = renderHook(() =>
+            useScaffoldMultiWriteContract({
+                calls: [
+                    {
+                        contractName: "Strk",
+                        functionName: "transfer",
+                        args: ["arg1", 1],
+                    },
+                ],
+            }),
+        );
+
+        expect(result.current.sendAsync).toBeInstanceOf(Function);
+
+        expect(mockSendTransaction).not.toHaveBeenCalled();
     });
 
-    useTransactorMock.mockReturnValue({
-      writeTransaction: vi.fn().mockResolvedValue("mock-tx-hash"),
-      sendTransactionInstance: {
-        sendAsync: vi.fn(),
-        status: "idle",
-      },
-      transactionReceiptInstance: {
-        data: null,
-        status: "idle",
-      },
+    it("should return error if wallet is not connected", async () => {
+        useNetworkMock.mockReturnValueOnce({ chain: null });
+
+        const { result } = renderHook(() =>
+            useScaffoldMultiWriteContract({
+                calls: [
+                    {
+                        contractName: "Strk",
+                        functionName: "transfer",
+                        args: ["arg1", 1],
+                    },
+                ],
+            }),
+        );
+
+        let error;
+        await act(async () => {
+            try {
+                await result.current.sendAsync();
+            } catch (e) {
+                error = e;
+            }
+        });
+
+        expect(error).toBeUndefined(); // We just log to console in this case
+        expect(useTransactorMock().writeTransaction).not.toHaveBeenCalled();
     });
-
-    useDeployedContractInfoMock.mockReturnValue({
-      data: {
-        address: "0x123",
-
-        abi: [{ name: "testFunction" }],
-      },
-    });
-
-    ContractMock.mockImplementation(() => ({
-      address: mockAddress,
-
-      abi: mockAbi,
-      populate: vi.fn().mockReturnValue({
-        contractAddress: mockAddress,
-        entrypoint: "mockFunction",
-        calldata: [],
-      }),
-    }));
-  });
-
-  it("should correctly parse contract calls", () => {
-    // Mock contract and ABI
-
-    const { result } = renderHook(() =>
-      useScaffoldMultiWriteContract({
-        calls: [
-          {
-            contractName: "Strk",
-            functionName: "transfer",
-            args: ["arg1", 1],
-          },
-        ],
-      }),
-    );
-
-    expect(result.current.sendAsync).toBeInstanceOf(Function);
-
-    expect(mockSendTransaction).not.toHaveBeenCalled();
-  });
-
-  it("should return error if wallet is not connected", async () => {
-    useNetworkMock.mockReturnValueOnce({ chain: null });
-
-    const { result } = renderHook(() =>
-      useScaffoldMultiWriteContract({
-        calls: [
-          {
-            contractName: "Strk",
-            functionName: "transfer",
-            args: ["arg1", 1],
-          },
-        ],
-      }),
-    );
-
-    let error;
-    await act(async () => {
-      try {
-        await result.current.sendAsync();
-      } catch (e) {
-        error = e;
-      }
-    });
-
-    expect(error).toBeUndefined(); // We just log to console in this case
-    expect(useTransactorMock().writeTransaction).not.toHaveBeenCalled();
-  });
 });
 
 describe("createContractCall Function", () => {
-  it("should create a contract call object", () => {
-    const contractCall = createContractCall("Strk", "transfer", ["arg1", 1]);
+    it("should create a contract call object", () => {
+        const contractCall = createContractCall("Strk", "transfer", ["arg1", 1]);
 
-    expect(contractCall).toEqual({
-      contractName: "Strk",
+        expect(contractCall).toEqual({
+            contractName: "Strk",
 
-      functionName: "transfer",
+            functionName: "transfer",
 
-      args: ["arg1", 1],
+            args: ["arg1", 1],
+        });
     });
-  });
 });

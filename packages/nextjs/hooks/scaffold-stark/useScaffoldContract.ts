@@ -20,43 +20,42 @@ import { useMemo } from "react";
  */
 
 export const useScaffoldContract = <TContractName extends ContractName>({
-  contractName,
+    contractName,
 }: {
-  contractName: TContractName;
+    contractName: TContractName;
 }) => {
-  const { data: deployedContractData, isLoading: deployedContractLoading } =
-    useDeployedContractInfo(contractName);
+    const { data: deployedContractData, isLoading: deployedContractLoading } = useDeployedContractInfo(contractName);
 
-  const { provider: publicClient } = useProvider();
-  const { account } = useAccount();
+    const { provider: publicClient } = useProvider();
+    const { account } = useAccount();
 
-  const contract = useMemo(() => {
-    if (!deployedContractData) return undefined;
+    const contract = useMemo(() => {
+        if (!deployedContractData) return undefined;
 
-    const contractInstance = new Contract({
-      abi: deployedContractData.abi as Abi,
-      address: deployedContractData.address,
-      providerOrAccount: publicClient,
-    });
+        const contractInstance = new Contract({
+            abi: deployedContractData.abi as Abi,
+            address: deployedContractData.address,
+            providerOrAccount: publicClient,
+        });
 
-    if (account) {
-      contractInstance.connect(account);
-    }
+        if (account) {
+            contractInstance.connect(account);
+        }
 
-    const originalCall = contractInstance.call.bind(contractInstance);
-    contractInstance.call = async (method: string, ...args: any[]) => {
-      try {
-        return await originalCall(method, ...args, { parseResponse: false });
-      } catch (error) {
-        return originalCall(method, ...args);
-      }
+        const originalCall = contractInstance.call.bind(contractInstance);
+        contractInstance.call = async (method: string, ...args: any[]) => {
+            try {
+                return await originalCall(method, ...args, { parseResponse: false });
+            } catch (error) {
+                return originalCall(method, ...args);
+            }
+        };
+
+        return contractInstance;
+    }, [deployedContractData, publicClient, account]);
+
+    return {
+        data: contract,
+        isLoading: deployedContractLoading,
     };
-
-    return contractInstance;
-  }, [deployedContractData, publicClient, account]);
-
-  return {
-    data: contract,
-    isLoading: deployedContractLoading,
-  };
 };

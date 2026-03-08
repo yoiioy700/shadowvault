@@ -66,7 +66,7 @@ export const BeneficiariesList = () => {
     const { data: beneficiaryCountObj } = useScaffoldReadContract({
         contractName: "ShadowVault",
         functionName: "get_beneficiary_count",
-        args: address ? [address as string] : [] as any,
+        args: address ? [address as string] : ([] as any),
     });
 
     const parsedShare = safeBigInt(newShare);
@@ -105,17 +105,22 @@ export const BeneficiariesList = () => {
     };
 
     const beneficiaryCount = beneficiaryCountObj ? Number(beneficiaryCountObj.toString()) : 0;
-    const indices = useMemo(() => Array.from({ length: Math.min(beneficiaryCount, MAX_BENEFICIARIES) }, (_, i) => i), [beneficiaryCount]);
+    const indices = useMemo(
+        () => Array.from({ length: Math.min(beneficiaryCount, MAX_BENEFICIARIES) }, (_, i) => i),
+        [beneficiaryCount],
+    );
 
     return (
         <div className="bg-[#0a0a0c] p-6 sm:p-8 rounded-2xl border border-white/[0.08] shadow-2xl relative overflow-hidden flex flex-col">
             {/* Toast notification */}
             {toast && (
-                <div className={`absolute top-4 left-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                    toast.type === "success"
-                        ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
-                        : "bg-red-500/10 border border-red-500/20 text-red-400"
-                }`}>
+                <div
+                    className={`absolute top-4 left-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                        toast.type === "success"
+                            ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                            : "bg-red-500/10 border border-red-500/20 text-red-400"
+                    }`}
+                >
                     {toast.message}
                 </div>
             )}
@@ -136,7 +141,19 @@ export const BeneficiariesList = () => {
             <div className="flex-grow min-h-[120px] mb-8">
                 {beneficiaryCount === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 border border-dashed border-white/[0.06] rounded-xl bg-white/[0.01]">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="text-white/15 mb-3"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+                        <svg
+                            width="32"
+                            height="32"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1"
+                            className="text-white/15 mb-3"
+                        >
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                        </svg>
                         <p className="text-sm text-white/30 font-light">No beneficiaries configured yet</p>
                         <p className="text-xs text-white/15 mt-1">Add heirs below to protect your assets</p>
                     </div>
@@ -174,7 +191,13 @@ export const BeneficiariesList = () => {
                         <button
                             className="px-6 py-2 text-xs text-black bg-white hover:bg-white/90 transition-colors rounded-lg font-bold disabled:opacity-40 disabled:cursor-not-allowed uppercase tracking-wider whitespace-nowrap"
                             onClick={handleAddBeneficiary}
-                            disabled={!newBeneficiary || !parsedShare || !address || isAdding || beneficiaryCount >= MAX_BENEFICIARIES}
+                            disabled={
+                                !newBeneficiary ||
+                                !parsedShare ||
+                                !address ||
+                                isAdding ||
+                                beneficiaryCount >= MAX_BENEFICIARIES
+                            }
                         >
                             {isAdding ? "..." : "Add"}
                         </button>

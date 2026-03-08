@@ -8,39 +8,39 @@ import { getRpcUrl } from "./provider";
  * @returns Promise with the mint result or error
  */
 export async function mintStrk(inputAddress: Address, strk: string) {
-  try {
-    const rpcUrl = getRpcUrl("devnet");
+    try {
+        const rpcUrl = getRpcUrl("devnet");
 
-    const response = await fetch(`${rpcUrl}/rpc`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        method: "devnet_mint",
-        params: {
-          address: inputAddress,
-          amount: parseFloat(strk) * 10 ** 18,
-          unit: "FRI",
-        },
-        id: 1,
-      }),
-    });
+        const response = await fetch(`${rpcUrl}/rpc`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                jsonrpc: "2.0",
+                method: "devnet_mint",
+                params: {
+                    address: inputAddress,
+                    amount: parseFloat(strk) * 10 ** 18,
+                    unit: "FRI",
+                },
+                id: 1,
+            }),
+        });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.error) {
+            throw new Error(data.error.message || "RPC call failed");
+        }
+
+        return data.result;
+    } catch (error) {
+        console.error("There was a problem with the mint operation:", error);
+        throw error;
     }
-
-    const data = await response.json();
-
-    if (data.error) {
-      throw new Error(data.error.message || "RPC call failed");
-    }
-
-    return data.result;
-  } catch (error) {
-    console.error("There was a problem with the mint operation:", error);
-    throw error;
-  }
 }

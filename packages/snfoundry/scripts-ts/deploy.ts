@@ -1,11 +1,11 @@
 import {
-  deployContract,
-  executeDeployCalls,
-  exportDeployments,
-  deployer,
-  assertDeployerDefined,
-  assertRpcNetworkActive,
-  assertDeployerSignable,
+    deployContract,
+    executeDeployCalls,
+    exportDeployments,
+    deployer,
+    assertDeployerDefined,
+    assertRpcNetworkActive,
+    assertDeployerSignable,
 } from "./deploy-contract";
 import { green, red } from "./helpers/colorize-log";
 
@@ -44,38 +44,37 @@ import { green, red } from "./helpers/colorize-log";
  *
  * @returns {Promise<void>}
  */
-const STRK_TOKEN_ADDRESS =
-  "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
+const STRK_TOKEN_ADDRESS = "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
 
 const deployScript = async (): Promise<void> => {
-  await deployContract({
-    contract: "ShadowVault",
-    constructorArgs: {
-      owner: deployer.address,
-      token_address: STRK_TOKEN_ADDRESS,
-    },
-  });
+    await deployContract({
+        contract: "ShadowVault",
+        constructorArgs: {
+            owner: deployer.address,
+            token_address: STRK_TOKEN_ADDRESS,
+        },
+    });
 };
 
 const main = async (): Promise<void> => {
-  try {
-    assertDeployerDefined();
+    try {
+        assertDeployerDefined();
 
-    await Promise.all([assertRpcNetworkActive(), assertDeployerSignable()]);
+        await Promise.all([assertRpcNetworkActive(), assertDeployerSignable()]);
 
-    await deployScript();
-    await executeDeployCalls();
-    exportDeployments();
+        await deployScript();
+        await executeDeployCalls();
+        exportDeployments();
 
-    console.log(green("All Setup Done!"));
-  } catch (err) {
-    if (err instanceof Error) {
-      console.error(red(err.message));
-    } else {
-      console.error(err);
+        console.log(green("All Setup Done!"));
+    } catch (err) {
+        if (err instanceof Error) {
+            console.error(red(err.message));
+        } else {
+            console.error(err);
+        }
+        process.exit(1); //exit with error so that non subsequent scripts are run
     }
-    process.exit(1); //exit with error so that non subsequent scripts are run
-  }
 };
 
 main();

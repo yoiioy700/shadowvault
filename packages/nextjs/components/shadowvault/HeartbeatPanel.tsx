@@ -61,19 +61,19 @@ export const HeartbeatPanel = () => {
     const { data: lastHeartbeat } = useScaffoldReadContract({
         contractName: "ShadowVault",
         functionName: "get_last_heartbeat",
-        args: address ? [address as string] : [] as any,
+        args: address ? [address as string] : ([] as any),
     });
 
     const { data: interval } = useScaffoldReadContract({
         contractName: "ShadowVault",
         functionName: "get_heartbeat_interval",
-        args: address ? [address as string] : [] as any,
+        args: address ? [address as string] : ([] as any),
     });
 
     const { data: isDead } = useScaffoldReadContract({
         contractName: "ShadowVault",
         functionName: "is_dead",
-        args: address ? [address as string] : [] as any,
+        args: address ? [address as string] : ([] as any),
     });
 
     const parsedInterval = safeBigInt(newInterval);
@@ -138,11 +138,13 @@ export const HeartbeatPanel = () => {
         <div className="bg-[#0a0a0c] p-6 sm:p-8 rounded-2xl border border-white/[0.08] shadow-2xl relative overflow-hidden flex flex-col">
             {/* Toast notification */}
             {toast && (
-                <div className={`absolute top-4 left-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                    toast.type === "success"
-                        ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
-                        : "bg-red-500/10 border border-red-500/20 text-red-400"
-                }`}>
+                <div
+                    className={`absolute top-4 left-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                        toast.type === "success"
+                            ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                            : "bg-red-500/10 border border-red-500/20 text-red-400"
+                    }`}
+                >
                     {toast.message}
                 </div>
             )}
@@ -157,17 +159,23 @@ export const HeartbeatPanel = () => {
                         <p className="text-sm text-white/40">Keep your vault active by sending a heartbeat.</p>
                     </div>
 
-                    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border ${isDeadBool ? "border-red-500/20 bg-red-500/5" : "border-white/10 bg-white/5"} backdrop-blur-md`}>
-                        <span className={`w-2 h-2 rounded-full ${isDeadBool ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]' : 'bg-emerald-400 animate-pulse shadow-[0_0_10px_rgba(52,211,153,0.8)]'}`}></span>
+                    <div
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border ${isDeadBool ? "border-red-500/20 bg-red-500/5" : "border-white/10 bg-white/5"} backdrop-blur-md`}
+                    >
+                        <span
+                            className={`w-2 h-2 rounded-full ${isDeadBool ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]" : "bg-emerald-400 animate-pulse shadow-[0_0_10px_rgba(52,211,153,0.8)]"}`}
+                        ></span>
                         <span className="text-xs font-medium text-white/90 tracking-wide uppercase">
-                            {isDeadBool ? 'Dead' : 'Active'}
+                            {isDeadBool ? "Dead" : "Active"}
                         </span>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-4">
                     <div className="p-4 rounded-xl border border-white/[0.04] bg-white/[0.02]">
-                        <p className="text-xs text-white/40 mb-2 uppercase tracking-wider font-semibold">Last Heartbeat</p>
+                        <p className="text-xs text-white/40 mb-2 uppercase tracking-wider font-semibold">
+                            Last Heartbeat
+                        </p>
                         <p className="font-mono text-sm text-white/80" title={formatDate(lastHb)}>
                             {formatTimeAgo(lastHb)}
                         </p>
@@ -182,9 +190,15 @@ export const HeartbeatPanel = () => {
 
                 {/* Time Remaining */}
                 {timeRemaining && (
-                    <div className={`p-4 rounded-xl border mb-8 ${timeRemaining === "Expired" ? "border-red-500/20 bg-red-500/5" : "border-white/[0.04] bg-white/[0.02]"}`}>
-                        <p className="text-xs text-white/40 mb-1 uppercase tracking-wider font-semibold">Time Until Deadline</p>
-                        <p className={`font-mono text-lg font-semibold tracking-tight ${timeRemaining === "Expired" ? "text-red-400" : "text-white"}`}>
+                    <div
+                        className={`p-4 rounded-xl border mb-8 ${timeRemaining === "Expired" ? "border-red-500/20 bg-red-500/5" : "border-white/[0.04] bg-white/[0.02]"}`}
+                    >
+                        <p className="text-xs text-white/40 mb-1 uppercase tracking-wider font-semibold">
+                            Time Until Deadline
+                        </p>
+                        <p
+                            className={`font-mono text-lg font-semibold tracking-tight ${timeRemaining === "Expired" ? "text-red-400" : "text-white"}`}
+                        >
                             {timeRemaining}
                         </p>
                     </div>
@@ -205,10 +219,11 @@ export const HeartbeatPanel = () => {
                             {PRESET_INTERVALS.map(({ label, value }) => (
                                 <button
                                     key={value}
-                                    className={`flex-1 px-2 py-2 text-[11px] rounded-lg font-medium transition-all border ${newInterval === value.toString()
-                                        ? "bg-white/10 text-white border-white/20"
-                                        : "bg-white/[0.02] text-white/40 border-white/[0.06] hover:bg-white/5 hover:text-white/60"
-                                        }`}
+                                    className={`flex-1 px-2 py-2 text-[11px] rounded-lg font-medium transition-all border ${
+                                        newInterval === value.toString()
+                                            ? "bg-white/10 text-white border-white/20"
+                                            : "bg-white/[0.02] text-white/40 border-white/[0.06] hover:bg-white/5 hover:text-white/60"
+                                    }`}
                                     onClick={() => setNewInterval(value.toString())}
                                 >
                                     {label}

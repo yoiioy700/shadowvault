@@ -3,35 +3,30 @@
  * You should not edit it manually or your changes might be overwritten.
  */
 
-import {
-  devnetStrkClassHash,
-  universalStrkAddress,
-  sepoliaMainnetStrkClassHash,
-  strkAbi,
-} from "../utils/Constants";
+import { devnetStrkClassHash, universalStrkAddress, sepoliaMainnetStrkClassHash, strkAbi } from "../utils/Constants";
 
 const preDeployedContracts = {
-  devnet: {
-    Strk: {
-      address: universalStrkAddress,
-      abi: strkAbi,
-      classHash: devnetStrkClassHash,
+    devnet: {
+        Strk: {
+            address: universalStrkAddress,
+            abi: strkAbi,
+            classHash: devnetStrkClassHash,
+        },
     },
-  },
-  sepolia: {
-    Strk: {
-      address: universalStrkAddress,
-      abi: strkAbi,
-      classHash: sepoliaMainnetStrkClassHash,
+    sepolia: {
+        Strk: {
+            address: universalStrkAddress,
+            abi: strkAbi,
+            classHash: sepoliaMainnetStrkClassHash,
+        },
     },
-  },
-  mainnet: {
-    Strk: {
-      address: universalStrkAddress,
-      abi: strkAbi,
-      classHash: sepoliaMainnetStrkClassHash,
+    mainnet: {
+        Strk: {
+            address: universalStrkAddress,
+            abi: strkAbi,
+            classHash: sepoliaMainnetStrkClassHash,
+        },
     },
-  },
 } as const;
 
 export default preDeployedContracts;

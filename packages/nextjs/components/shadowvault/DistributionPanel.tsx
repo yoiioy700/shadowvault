@@ -30,31 +30,31 @@ export const DistributionPanel = () => {
     const { data: isDead } = useScaffoldReadContract({
         contractName: "ShadowVault",
         functionName: "is_dead",
-        args: address ? [address as string] : [] as any,
+        args: address ? [address as string] : ([] as any),
     });
 
     const { data: balance } = useScaffoldReadContract({
         contractName: "ShadowVault",
         functionName: "get_balance",
-        args: address ? [address as string] : [] as any,
+        args: address ? [address as string] : ([] as any),
     });
 
     const { data: hasBeenDistributed } = useScaffoldReadContract({
         contractName: "ShadowVault",
         functionName: "has_been_distributed",
-        args: address ? [address as string] : [] as any,
+        args: address ? [address as string] : ([] as any),
     });
 
     const { data: beneficiaryCount } = useScaffoldReadContract({
         contractName: "ShadowVault",
         functionName: "get_beneficiary_count",
-        args: address ? [address as string] : [] as any,
+        args: address ? [address as string] : ([] as any),
     });
 
     const { sendAsync: triggerDistributionAsync } = useScaffoldWriteContract({
         contractName: "ShadowVault",
         functionName: "trigger_distribution",
-        args: address ? [address as string] : [] as any,
+        args: address ? [address as string] : ([] as any),
     });
 
     const isDeadBool = isDead ? Boolean(isDead) : false;
@@ -110,11 +110,13 @@ export const DistributionPanel = () => {
         <div className="bg-[#0a0a0c] p-6 sm:p-8 rounded-2xl border border-white/[0.08] shadow-2xl relative overflow-hidden flex flex-col">
             {/* Toast notification */}
             {toast && (
-                <div className={`absolute top-4 left-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                    toast.type === "success"
-                        ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
-                        : "bg-red-500/10 border border-red-500/20 text-red-400"
-                }`}>
+                <div
+                    className={`absolute top-4 left-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                        toast.type === "success"
+                            ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                            : "bg-red-500/10 border border-red-500/20 text-red-400"
+                    }`}
+                >
                     {toast.message}
                 </div>
             )}
@@ -124,14 +126,11 @@ export const DistributionPanel = () => {
                 <div className="absolute inset-0 z-40 bg-black/80 backdrop-blur-sm flex items-center justify-center rounded-2xl">
                     <div className="bg-[#111114] border border-white/[0.1] rounded-xl p-6 mx-4 max-w-sm w-full">
                         <h3 className="text-lg font-semibold text-white mb-2">Confirm Distribution</h3>
-                        <p className="text-sm text-white/50 mb-1">
-                            This will permanently distribute all vault funds:
-                        </p>
-                        <p className="text-lg font-mono text-red-400 mb-4">
-                            {formatBalance(rawBalance)} STRK
-                        </p>
+                        <p className="text-sm text-white/50 mb-1">This will permanently distribute all vault funds:</p>
+                        <p className="text-lg font-mono text-red-400 mb-4">{formatBalance(rawBalance)} STRK</p>
                         <p className="text-xs text-white/30 mb-6">
-                            to {benCount} {benCount === 1 ? "beneficiary" : "beneficiaries"}. This action cannot be undone.
+                            to {benCount} {benCount === 1 ? "beneficiary" : "beneficiaries"}. This action cannot be
+                            undone.
                         </p>
                         <div className="flex gap-3">
                             <button
@@ -172,7 +171,9 @@ export const DistributionPanel = () => {
             <div className="grid grid-cols-3 gap-3 mb-8">
                 <div className="p-3 rounded-xl border border-white/[0.04] bg-white/[0.02] text-center">
                     <p className="text-[10px] text-white/40 uppercase tracking-wider font-semibold mb-1">Status</p>
-                    <p className={`font-mono text-sm font-semibold ${isDeadBool ? "text-red-400" : "text-emerald-400"}`}>
+                    <p
+                        className={`font-mono text-sm font-semibold ${isDeadBool ? "text-red-400" : "text-emerald-400"}`}
+                    >
                         {isDeadBool ? "Dead" : "Active"}
                     </p>
                 </div>
@@ -200,10 +201,10 @@ export const DistributionPanel = () => {
                     {isDistributing
                         ? "Distributing..."
                         : distributed
-                            ? "Already Distributed"
-                            : canDistribute
-                                ? "Trigger Distribution"
-                                : "Distribution Unavailable"}
+                          ? "Already Distributed"
+                          : canDistribute
+                            ? "Trigger Distribution"
+                            : "Distribution Unavailable"}
                 </button>
             </div>
         </div>

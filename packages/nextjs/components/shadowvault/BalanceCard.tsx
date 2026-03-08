@@ -56,29 +56,32 @@ export const BalanceCard = () => {
     const { data: balance, isLoading: isBalanceLoading } = useScaffoldReadContract({
         contractName: "ShadowVault",
         functionName: "get_balance",
-        args: address ? [address as string] : [] as any,
+        args: address ? [address as string] : ([] as any),
     });
 
     const parsedDepositAmount = parseEther(depositAmount);
     const parsedWithdrawAmount = parseEther(withdrawAmount);
 
     const { sendAsync: depositAsync } = useScaffoldMultiWriteContract({
-        calls: parsedDepositAmount > 0n ? [
-            {
-                contractAddress: STRK_ADDRESS,
-                entrypoint: "approve",
-                calldata: [
-                    VAULT_ADDRESS,
-                    cairo.uint256(parsedDepositAmount).low.toString(),
-                    cairo.uint256(parsedDepositAmount).high.toString()
-                ]
-            },
-            {
-                contractName: "ShadowVault",
-                functionName: "deposit",
-                args: [parsedDepositAmount],
-            }
-        ] : [],
+        calls:
+            parsedDepositAmount > 0n
+                ? [
+                      {
+                          contractAddress: STRK_ADDRESS,
+                          entrypoint: "approve",
+                          calldata: [
+                              VAULT_ADDRESS,
+                              cairo.uint256(parsedDepositAmount).low.toString(),
+                              cairo.uint256(parsedDepositAmount).high.toString(),
+                          ],
+                      },
+                      {
+                          contractName: "ShadowVault",
+                          functionName: "deposit",
+                          args: [parsedDepositAmount],
+                      },
+                  ]
+                : [],
     });
 
     const { sendAsync: withdrawAsync } = useScaffoldWriteContract({
@@ -124,11 +127,13 @@ export const BalanceCard = () => {
         <div className="bg-[#0a0a0c] p-6 sm:p-8 rounded-2xl border border-white/[0.08] shadow-2xl relative overflow-hidden flex flex-col">
             {/* Toast notification */}
             {toast && (
-                <div className={`absolute top-4 left-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                    toast.type === "success"
-                        ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
-                        : "bg-red-500/10 border border-red-500/20 text-red-400"
-                }`}>
+                <div
+                    className={`absolute top-4 left-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                        toast.type === "success"
+                            ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                            : "bg-red-500/10 border border-red-500/20 text-red-400"
+                    }`}
+                >
                     {toast.message}
                 </div>
             )}
@@ -139,7 +144,9 @@ export const BalanceCard = () => {
             <h2 className="text-xl font-medium text-white tracking-tight mb-8 relative z-10">Vault Balance</h2>
 
             <div className="flex flex-col mb-10 relative z-10">
-                <span className="text-xs text-white/40 uppercase tracking-wider font-semibold mb-2">Deposited Amount</span>
+                <span className="text-xs text-white/40 uppercase tracking-wider font-semibold mb-2">
+                    Deposited Amount
+                </span>
                 <div className="flex items-baseline gap-3">
                     {isBalanceLoading ? (
                         <div className="w-40 h-14 bg-white/5 animate-pulse rounded-lg" />

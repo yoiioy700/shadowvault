@@ -299,7 +299,9 @@ pub mod ShadowVault {
             }
 
             // Validate total won't exceed 10000 bps (using u32 to prevent overflow)
-            assert(total_existing_shares + share_bps.into() <= 10000_u32, 'Total shares exceed 100%');
+            assert(
+                total_existing_shares + share_bps.into() <= 10000_u32, 'Total shares exceed 100%',
+            );
 
             if found {
                 self.beneficiary_share.write((caller, found_index), share_bps);

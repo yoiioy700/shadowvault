@@ -14,9 +14,7 @@ export const VaultDashboard = () => {
             <div className="max-w-7xl mx-auto">
                 <div className="mb-12 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                     <div>
-                        <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-3">
-                            Your Vault
-                        </h1>
+                        <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-3">Your Vault</h1>
                         <p className="text-lg text-white/50 max-w-2xl font-light">
                             Manage your decentralized inheritance and protocol status.
                         </p>
@@ -53,3 +51,4 @@ export const VaultDashboard = () => {
         </div>
     );
 };
+

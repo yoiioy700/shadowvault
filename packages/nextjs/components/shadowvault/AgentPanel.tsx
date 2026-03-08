@@ -15,7 +15,7 @@ export const AgentPanel = () => {
     const { data: currentAgent, isLoading: isAgentLoading } = useScaffoldReadContract({
         contractName: "ShadowVault",
         functionName: "get_agent",
-        args: address ? [address as string] : [] as any,
+        args: address ? [address as string] : ([] as any),
     });
 
     const { sendAsync: setAgentAsync } = useScaffoldWriteContract({
@@ -38,7 +38,10 @@ export const AgentPanel = () => {
     };
 
     const agentAddr = currentAgent?.toString() ?? "0x0";
-    const hasAgent = agentAddr !== "0x0" && agentAddr !== "0" && agentAddr !== "0x0000000000000000000000000000000000000000000000000000000000000000";
+    const hasAgent =
+        agentAddr !== "0x0" &&
+        agentAddr !== "0" &&
+        agentAddr !== "0x0000000000000000000000000000000000000000000000000000000000000000";
 
     return (
         <div className="bg-[#0a0a0c] p-6 sm:p-8 rounded-2xl border border-white/[0.08] shadow-2xl relative overflow-hidden flex flex-col">
@@ -50,8 +53,12 @@ export const AgentPanel = () => {
                     <h2 className="text-xl font-medium text-white tracking-tight">AI Agent</h2>
                     <p className="text-xs text-white/30 mt-1">Authorize an agent to execute on your behalf</p>
                 </div>
-                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border ${hasAgent ? "border-purple-500/20 bg-purple-500/5" : "border-white/[0.06] bg-white/[0.02]"}`}>
-                    <span className={`w-2 h-2 rounded-full ${hasAgent ? "bg-purple-400 animate-pulse shadow-[0_0_8px_rgba(192,132,252,0.6)]" : "bg-white/20"}`}></span>
+                <div
+                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border ${hasAgent ? "border-purple-500/20 bg-purple-500/5" : "border-white/[0.06] bg-white/[0.02]"}`}
+                >
+                    <span
+                        className={`w-2 h-2 rounded-full ${hasAgent ? "bg-purple-400 animate-pulse shadow-[0_0_8px_rgba(192,132,252,0.6)]" : "bg-white/20"}`}
+                    ></span>
                     <span className="text-xs font-medium text-white/70 tracking-wide uppercase">
                         {hasAgent ? "Active" : "None"}
                     </span>
@@ -60,13 +67,23 @@ export const AgentPanel = () => {
 
             {/* Current Agent Info */}
             <div className="mb-8 relative z-10">
-                <span className="text-xs text-white/40 uppercase tracking-wider font-semibold mb-3 block">Current Agent</span>
+                <span className="text-xs text-white/40 uppercase tracking-wider font-semibold mb-3 block">
+                    Current Agent
+                </span>
                 {isAgentLoading ? (
                     <div className="w-48 h-6 bg-white/5 animate-pulse rounded-lg" />
                 ) : hasAgent ? (
                     <div className="p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-white/[0.06] flex items-center justify-center">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-300">
+                            <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                className="text-purple-300"
+                            >
                                 <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1.07A7 7 0 0 1 14 23h-4a7 7 0 0 1-6.93-6H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73A2 2 0 0 1 12 2z" />
                             </svg>
                         </div>
@@ -82,17 +99,33 @@ export const AgentPanel = () => {
             {/* Feature Description */}
             <div className="mb-8 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] relative z-10">
                 <div className="flex items-start gap-3">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-indigo-400 mt-0.5 shrink-0"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></svg>
+                    <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        className="text-indigo-400 mt-0.5 shrink-0"
+                    >
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 16v-4M12 8h.01" />
+                    </svg>
                     <p className="text-xs text-white/40 leading-relaxed">
-                        When an authorized AI agent executes a transaction via <code className="text-indigo-400/80 bg-indigo-500/10 px-1.5 py-0.5 rounded text-[10px] font-mono">agent_execute()</code>,
-                        it automatically records a heartbeat, keeping your vault alive.
+                        When an authorized AI agent executes a transaction via{" "}
+                        <code className="text-indigo-400/80 bg-indigo-500/10 px-1.5 py-0.5 rounded text-[10px] font-mono">
+                            agent_execute()
+                        </code>
+                        , it automatically records a heartbeat, keeping your vault alive.
                     </p>
                 </div>
             </div>
 
             {/* Set Agent Form */}
             <div className="mt-auto relative z-10">
-                <h3 className="text-xs text-white/40 uppercase tracking-wider font-semibold mb-4">{hasAgent ? "Update Agent" : "Set Agent"}</h3>
+                <h3 className="text-xs text-white/40 uppercase tracking-wider font-semibold mb-4">
+                    {hasAgent ? "Update Agent" : "Set Agent"}
+                </h3>
                 <div className="flex flex-col gap-3">
                     <div className="w-full grayscale brightness-75 contrast-125 opacity-80 hover:opacity-100 transition-opacity">
                         <AddressInput
